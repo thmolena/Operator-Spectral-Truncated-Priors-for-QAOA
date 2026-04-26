@@ -73,6 +73,14 @@ def headline_training_kwargs() -> Dict[str, object]:
     }
 
 
+def classical_search_method_name(depth: int) -> str:
+    return f"Classical depth-{int(depth)} search"
+
+
+def classical_search_angles_method_name(depth: int) -> str:
+    return f"Classical depth-{int(depth)} search angles"
+
+
 def _load_cached_panel(
     panel_path: Path = DEFAULT_CACHE_PANEL,
     meta_path: Path = DEFAULT_CACHE_META,
@@ -637,7 +645,8 @@ def evaluate_angle_initializer(
     }
 
 
-def summarize_initializer_benchmark(frame: pd.DataFrame) -> pd.DataFrame:
+def summarize_initializer_benchmark(frame: pd.DataFrame, depth: int) -> pd.DataFrame:
+    classical_method = classical_search_method_name(depth)
     summary = (
         frame.groupby("method", as_index=False)
         .agg(
@@ -653,7 +662,7 @@ def summarize_initializer_benchmark(frame: pd.DataFrame) -> pd.DataFrame:
     )
     summary["std_ratio"] = summary["std_ratio"].fillna(0.0)
     method_order = [
-        "Classical depth-2 search",
+        classical_method,
         "Random initialization",
         "Heuristic initialization",
         "Descriptor k-NN regressor",
@@ -664,7 +673,7 @@ def summarize_initializer_benchmark(frame: pd.DataFrame) -> pd.DataFrame:
     ]
     summary["method"] = pd.Categorical(summary["method"], categories=method_order, ordered=True)
     summary = summary.sort_values("method").reset_index(drop=True)
-    classical_runtime = float(summary.loc[summary["method"] == "Classical depth-2 search", "median_total_ms"].iloc[0])
+    classical_runtime = float(summary.loc[summary["method"] == classical_method, "median_total_ms"].iloc[0])
     full_model_ratio = float(summary.loc[summary["method"] == "Graph-conditioned GNN (ours)", "mean_ratio"].iloc[0])
     summary["speedup_vs_classical"] = classical_runtime / summary["median_total_ms"]
     summary["delta_vs_full"] = summary["mean_ratio"] - full_model_ratio
@@ -680,6 +689,7 @@ def evaluate_transcriptomic_initializer_benchmark(
     descriptor_knn=None,
     random_seed: int = 19,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    classical_method = classical_search_method_name(depth)
     heuristic_raw_angles = np.mean([instance["target_angles"] for instance in adaptation_instances], axis=0)
     rng = np.random.default_rng(random_seed)
     rows: List[Dict[str, object]] = []
@@ -689,7 +699,7 @@ def evaluate_transcriptomic_initializer_benchmark(
         classical_reference = instance["classical_reference"]
         rows.append(
             {
-                "method": "Classical depth-2 search",
+                "method": classical_method,
                 "graph_id": int(instance["graph_id"]),
                 "num_nodes": int(instance["n"]),
                 "num_edges": int(instance["edge_count"]),
@@ -814,7 +824,7 @@ def evaluate_transcriptomic_initializer_benchmark(
         )
 
     detailed = pd.DataFrame(rows)
-    summary = summarize_initializer_benchmark(detailed)
+    summary = summarize_initializer_benchmark(detailed, depth)
     return detailed, summary
 
 
@@ -862,6 +872,7 @@ def evaluate_transfer_methods(
     source_prior_regressor,
     target_model: SimpleGCN | None = None,
 ) -> pd.DataFrame:
+    classical_method = classical_search_method_name(depth)
     rows: List[Dict[str, object]] = []
     for instance in benchmark_instances:
         best_cut = float(instance["best_cut"])
@@ -869,7 +880,7 @@ def evaluate_transfer_methods(
         classical_ratio = float(classical_reference["value"] / best_cut)
         rows.append(
             {
-                "method": "Classical depth-2 search",
+                "method": classical_method,
                 "graph_id": int(instance["graph_id"]),
                 "num_nodes": int(instance["n"]),
                 "num_edges": int(instance["edge_count"]),
@@ -1078,6 +1089,7 @@ def evaluate_transcriptomic_benchmark(
     adaptation_instances: Sequence[Dict[str, object]],
     depth: int,
 ) -> pd.DataFrame:
+    classical_method = classical_search_method_name(depth)
     heuristic_angles = np.mean([instance["target_angles"] for instance in adaptation_instances], axis=0)
     rows: List[Dict[str, object]] = []
 
@@ -1098,7 +1110,7 @@ def evaluate_transcriptomic_benchmark(
         rows.extend(
             [
                 {
-                    "method": "Classical depth-2 search",
+                    "method": classical_method,
                     "graph_id": graph_id,
                     "num_nodes": int(instance["n"]),
                     "num_edges": int(instance["edge_count"]),
@@ -1133,7 +1145,8 @@ def evaluate_transcriptomic_benchmark(
     return pd.DataFrame(rows)
 
 
-def summarize_transcriptomic_benchmark(frame: pd.DataFrame) -> pd.DataFrame:
+def summarize_transcriptomic_benchmark(frame: pd.DataFrame, depth: int) -> pd.DataFrame:
+    classical_method = classical_search_method_name(depth)
     summary = (
         frame.groupby("method", as_index=False)
         .agg(
@@ -1149,7 +1162,7 @@ def summarize_transcriptomic_benchmark(frame: pd.DataFrame) -> pd.DataFrame:
     summary["std_ratio"] = summary["std_ratio"].fillna(0.0)
 
     classical_mean_ratio = float(
-        summary.loc[summary["method"] == "Classical depth-2 search", "mean_ratio"].iloc[0]
+        summary.loc[summary["method"] == classical_method, "mean_ratio"].iloc[0]
     )
     summary["retention_vs_classical"] = summary["mean_ratio"] / classical_mean_ratio
     return summary
@@ -1178,7 +1191,7 @@ def run_transcriptomic_generalization_benchmark(
         adaptation_instances,
         config.depth,
     )
-    summary = summarize_transcriptomic_benchmark(benchmark_frame)
+    summary = summarize_transcriptomic_benchmark(benchmark_frame, config.depth)
     metadata = {
         "config": config,
         "training": {
@@ -1317,7 +1330,14 @@ def run_transcriptomic_noise_experiment(
 
     rows: List[Dict[str, object]] = []
     rows.extend(evaluate_method_under_noise(benchmark_instances, "Graph-conditioned GNN (ours)", learned_lookup, noise_rates))
-    rows.extend(evaluate_method_under_noise(benchmark_instances, "Classical depth-2 search angles", classical_lookup, noise_rates))
+    rows.extend(
+        evaluate_method_under_noise(
+            benchmark_instances,
+            classical_search_angles_method_name(config.depth),
+            classical_lookup,
+            noise_rates,
+        )
+    )
     rows.extend(evaluate_method_under_noise(benchmark_instances, "Heuristic mean-angle initializer", heuristic_lookup, noise_rates))
 
     frame = pd.DataFrame(rows)

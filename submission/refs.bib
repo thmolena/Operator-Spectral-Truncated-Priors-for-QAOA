@@ -1,0 +1,774 @@
+% References for the UQ-QAOA manuscript.
+
+% ─── 1–5  QAOA core ───────────────────────────────────────────────
+
+@article{farhi2014,
+  title={A quantum approximate optimization algorithm},
+  author={Farhi, Edward and Goldstone, Jeffrey and Gutmann, Sam},
+  journal={arXiv preprint arXiv:1411.4028},
+  year={2014},
+  doi={10.48550/arxiv.1411.4028}
+}
+
+@article{zhou2020,
+  title={Quantum approximate optimization algorithm: Performance, mechanism, and implementation on near-term devices},
+  author={Zhou, Leo and Wang, Sheng-Tao and Choi, Soonwon and Pichler, Hannes and Lukin, Mikhail D},
+  journal={Physical Review X},
+  volume={10},
+  number={2},
+  pages={021067},
+  year={2020},
+  publisher={APS},
+  doi={10.1103/physrevx.10.021067}
+}
+
+@article{cerezo2021,
+  title={Variational quantum algorithms},
+  author={Cerezo, M. and Arrasmith, Andrew and Babbush, Ryan and Benjamin, Simon C. and Endo, Suguru and Fujii, Keisuke and McClean, Jarrod R. and Mitarai, Kosuke and Yuan, Xiao and Cincio, Lukasz and Coles, Patrick J.},
+  journal={Nature Reviews Physics},
+  volume={3},
+  number={9},
+  pages={625--644},
+  year={2021},
+  publisher={Nature Publishing Group},
+  doi={10.1038/s42254-021-00348-9}
+}
+
+% ─── 6–12  QAOA parameter concentration / transferability ─────────
+
+@article{brandao2018,
+  title={For fixed control parameters the quantum approximate optimization algorithm's objective function value concentrates for typical instances},
+  author={Brand{\~a}o, Fernando G. S. L. and Broughton, Michael and Farhi, Edward and Gutmann, Sam and Napp, Hartford},
+  journal={arXiv preprint arXiv:1812.04170},
+  year={2018},
+  doi={10.48550/arxiv.1812.04170}
+}
+
+@article{wurtz2021,
+  title={Fixed-angle conjectures for the quantum approximate optimization algorithm on regular {MaxCut} graphs},
+  author={Wurtz, Jonathan and Love, Peter},
+  journal={Physical Review A},
+  volume={104},
+  number={5},
+  pages={052419},
+  year={2021},
+  publisher={APS},
+  doi={10.1103/physreva.104.052419}
+}
+
+@inproceedings{galda2021,
+  title={Transferability of optimal {QAOA} parameters between random graphs},
+  author={Galda, Alexey and Liu, Xiaoyuan and Lykov, Danylo and Alexeev, Yuri and Safro, Ilya},
+  booktitle={2021 IEEE International Conference on Quantum Computing and Engineering (QCE)},
+  pages={171--180},
+  year={2021},
+  publisher={IEEE},
+  doi={10.1109/qce52317.2021.00034}
+}
+
+@article{akshay2021,
+  title={Parameter concentrations in quantum approximate optimization},
+  author={Akshay, V. and Rabinovich, D. and Campos, E. and Biamonte, J.},
+  journal={Physical Review A},
+  volume={104},
+  number={1},
+  pages={L010401},
+  year={2021},
+  publisher={APS},
+  doi={10.1103/physreva.104.l010401}
+}
+
+@article{shaydulin2023,
+  title={On the importance of classical preprocessing in {QAOA}},
+  author={Shaydulin, Ruslan and Wild, Stefan M.},
+  journal={arXiv preprint arXiv:2306.16979},
+  year={2023},
+  doi={10.48550/arxiv.2306.16979}
+}
+
+@article{streif2020,
+  title={Training the quantum approximate optimization algorithm without access to a quantum processing unit},
+  author={Streif, Michael and Leib, Martin},
+  journal={Quantum Science and Technology},
+  volume={5},
+  number={3},
+  pages={034008},
+  year={2020},
+  publisher={IOP Publishing},
+  doi={10.1088/2058-9565/ab8c2b}
+}
+
+% ─── 13–19  ML-aided QAOA / warm-starting ─────────────────────────
+
+@article{jain2022,
+  title={Graph neural network initialisation of quantum approximate optimisation},
+  author={Jain, Nishant and Coyle, Brian and Kashefi, Elham and Kumar, Niraj},
+  journal={Quantum},
+  volume={6},
+  pages={861},
+  year={2022},
+  doi={10.22331/q-2022-11-17-861}
+}
+
+@inproceedings{khairy2020,
+  title={Learning to optimize variational quantum circuits to solve combinatorial problems},
+  author={Khairy, Sami and Shaydulin, Ruslan and Cincio, Lukasz and Alexeev, Yuri and Balaprakash, Prasanna},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={34},
+  pages={2367--2375},
+  year={2020},
+  doi={10.1609/aaai.v34i03.5616}
+}
+
+@article{egger2021,
+  title={Warm-starting quantum optimization},
+  author={Egger, Daniel J. and Mare{\v{c}}ek, Jakub and Woerner, Stefan},
+  journal={Quantum},
+  volume={5},
+  pages={479},
+  year={2021},
+  doi={10.22331/q-2021-06-17-479}
+}
+
+@article{sauvage2024,
+  title={Building spatial symmetries into parameterized quantum circuits for faster training},
+  author={Sauvage, Fr{\'e}d{\'e}ric and Sim, Sukin and Kunitsa, Alexander A. and Simon, William A. and Mauri, Marta and Perdomo-Ortiz, Alejandro},
+  journal={Quantum Science and Technology},
+  volume={9},
+  number={1},
+  pages={015029},
+  year={2024},
+  doi={10.1088/2058-9565/ad152e}
+}
+
+@article{moussa2022,
+  title={Unsupervised strategies for identifying optimal parameters in quantum approximate optimization algorithm},
+  author={Moussa, Cezar and Calandra, Hector and Dunjko, Vedran},
+  journal={EPJ Quantum Technology},
+  volume={9},
+  pages={11},
+  year={2022},
+  doi={10.1140/epjqt/s40507-022-00131-4}
+}
+
+@article{tibaldi2023,
+  title={Bayesian optimization for {QAOA}},
+  author={Tibaldi, Simone and Vodola, Davide and Notarnicola, Simone and Montangero, Simone},
+  journal={Quantum Science and Technology},
+  volume={8},
+  number={3},
+  pages={035022},
+  year={2023},
+  doi={10.1109/tqe.2023.3325167}
+}
+
+@article{sack2021,
+  title={Quantum annealing initialization of the quantum approximate optimization algorithm},
+  author={Sack, Stefan H. and Serbyn, Maksym},
+  journal={Quantum},
+  volume={5},
+  pages={491},
+  year={2021},
+  doi={10.22331/q-2021-07-01-491}
+}
+
+% ─── 20–27  GNN core and spectral methods ─────────────────────────
+
+@inproceedings{xu2019,
+  title={How powerful are graph neural networks?},
+  author={Xu, Keyulu and Hu, Weihua and Leskovec, Jure and Jegelka, Stefanie},
+  booktitle={International Conference on Learning Representations},
+  year={2019}
+}
+
+@inproceedings{gilmer2017,
+  title={Neural message passing for quantum chemistry},
+  author={Gilmer, Justin and Schoenholz, Samuel S. and Riley, Patrick F. and Vinyals, Oriol and Dahl, George E.},
+  booktitle={International Conference on Machine Learning},
+  pages={1263--1272},
+  year={2017},
+  publisher={PMLR}
+}
+
+@article{dwivedi2023,
+  title={Benchmarking graph neural networks},
+  author={Dwivedi, Vijay Prakash and Joshi, Chaitanya K. and Luo, Anh Tuan and Laurent, Thomas and Bengio, Yoshua and Bresson, Xavier},
+  journal={Journal of Machine Learning Research},
+  volume={24},
+  number={43},
+  pages={1--48},
+  year={2023}
+}
+
+@inproceedings{lim2023,
+  title={Sign and basis invariant networks for spectral graph representation learning},
+  author={Lim, Derek and Robinson, Joshua and Zhao, Lingxiao and Smidt, Tess and Sra, Suvrit and Maron, Haggai and Jegelka, Stefanie},
+  booktitle={International Conference on Learning Representations},
+  year={2023}
+}
+
+@inproceedings{hamilton2017,
+  title={Inductive representation learning on large graphs},
+  author={Hamilton, William L. and Ying, Rex and Leskovec, Jure},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={30},
+  year={2017}
+}
+
+@inproceedings{kreuzer2021,
+  title={Rethinking graph transformers with spectral attention},
+  author={Kreuzer, Devin and Beaini, Dominique and Hamilton, William L. and L{\'e}tourneau, Vincent and Tossou, Prudencio},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={34},
+  pages={21618--21629},
+  year={2021}
+}
+
+% ─── 28–33  ML for combinatorial optimization ─────────────────────
+
+@inproceedings{khalil2017,
+  title={Learning combinatorial optimization algorithms over graphs},
+  author={Khalil, Elias B. and Dai, Hanjun and Zhang, Yuyu and Dilkina, Bistra and Song, Le},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={30},
+  year={2017}
+}
+
+@inproceedings{dai2016,
+  title={Discriminative embeddings of latent variable models for structured data},
+  author={Dai, Hanjun and Dai, Bo and Song, Le},
+  booktitle={International Conference on Machine Learning},
+  pages={723--732},
+  year={2016},
+  publisher={PMLR}
+}
+
+@article{bengio2021,
+  title={Machine learning for combinatorial optimization: a methodological tour d'horizon},
+  author={Bengio, Yoshua and Lodi, Andrea and Prouvost, Antoine},
+  journal={European Journal of Operational Research},
+  volume={290},
+  number={2},
+  pages={405--421},
+  year={2021},
+  publisher={Elsevier},
+  doi={10.1016/j.ejor.2020.07.063}
+}
+
+@article{cappart2023,
+  title={Combinatorial optimization and reasoning with graph neural networks},
+  author={Cappart, Quentin and Ch{\'e}telat, Didier and Khalil, Elias B. and Lodi, Andrea and Morris, Christopher and Veli{\v{c}}kovi{\'c}, Petar},
+  journal={Journal of Machine Learning Research},
+  volume={24},
+  number={130},
+  pages={1--61},
+  year={2023}
+}
+
+@article{schuetz2022,
+  title={Combinatorial optimization with physics-inspired graph neural networks},
+  author={Schuetz, Martin J. A. and Brubaker, J. Kyle and Katzgraber, Helmut G.},
+  journal={Nature Machine Intelligence},
+  volume={4},
+  pages={367--377},
+  year={2022},
+  publisher={Nature Publishing Group},
+  doi={10.1038/s42256-022-00468-6}
+}
+
+@inproceedings{kool2019,
+  title={Attention, learn to solve routing problems!},
+  author={Kool, Wouter and van Hoof, Herke and Welling, Max},
+  booktitle={International Conference on Learning Representations},
+  year={2019}
+}
+
+% ─── 34–37  Amortized / meta optimization ─────────────────────────
+
+@article{amos2023,
+  title={Tutorial on amortized optimization},
+  author={Amos, Brandon},
+  journal={Foundations and Trends in Machine Learning},
+  volume={16},
+  number={5},
+  pages={592--732},
+  year={2023},
+  doi={10.1561/2200000102}
+}
+
+@inproceedings{finn2017,
+  title={Model-agnostic meta-learning for fast adaptation of deep networks},
+  author={Finn, Chelsea and Abbeel, Pieter and Levine, Sergey},
+  booktitle={International Conference on Machine Learning},
+  pages={1126--1135},
+  year={2017},
+  publisher={PMLR}
+}
+
+@article{chen2022,
+  title={Learning to optimize: A primer and a benchmark},
+  author={Chen, Tianlong and Chen, Xiaohan and Chen, Wuyang and Heaton, Howard and Liu, Jialin and Wang, Zhangyang and Yin, Wotao},
+  journal={Journal of Machine Learning Research},
+  volume={23},
+  number={189},
+  pages={1--59},
+  year={2022}
+}
+
+@inproceedings{shu2022,
+  title={Amortized implicit differentiation for stochastic bilevel optimization},
+  author={Shu, Rui and Xu, Hao H. and Oh, Tae-Hyun and Swersky, Kevin},
+  booktitle={International Conference on Learning Representations},
+  year={2022}
+}
+
+% ─── 38–46  Uncertainty / distributional prediction ───────────────
+
+@inproceedings{gal2016,
+  title={Dropout as a {Bayesian} approximation: Representing model uncertainty in deep learning},
+  author={Gal, Yarin and Ghahramani, Zoubin},
+  booktitle={International Conference on Machine Learning},
+  pages={1050--1059},
+  year={2016},
+  publisher={PMLR}
+}
+
+@inproceedings{lakshminarayanan2017,
+  title={Simple and scalable predictive uncertainty estimation using deep ensembles},
+  author={Lakshminarayanan, Balaji and Pritzel, Alexander and Blundell, Charles},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={30},
+  year={2017}
+}
+
+@inproceedings{nix1994,
+  title={Estimating the mean and variance of the target probability distribution},
+  author={Nix, David A. and Weigend, Andreas S.},
+  booktitle={Proceedings of 1994 IEEE International Conference on Neural Networks},
+  volume={1},
+  pages={55--60},
+  year={1994},
+  publisher={IEEE},
+  doi={10.1109/icnn.1994.374138}
+}
+
+@inproceedings{kendall2017,
+  title={What uncertainties do we need in {Bayesian} deep learning for computer vision?},
+  author={Kendall, Alex and Gal, Yarin},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={30},
+  year={2017}
+}
+
+@inproceedings{kuleshov2018,
+  title={Accurate uncertainties for deep learning using calibrated regression},
+  author={Kuleshov, Volodymyr and Fenner, Nathan and Ermon, Stefano},
+  booktitle={International Conference on Machine Learning},
+  pages={2796--2804},
+  year={2018},
+  publisher={PMLR}
+}
+
+@article{abdar2021,
+  title={A review of uncertainty quantification in deep learning: Techniques, applications and challenges},
+  author={Abdar, Moloud and Pourpanah, Farhad and Hussain, Sadiq and Rezazadegan, Dana and Liu, Li and Ghavamzadeh, Mohammad and Fieguth, Paul and Cao, Xiaochun and Khosravi, Abbas and Acharya, U. Rajendra and Makarenkov, Vladimir and Nahavandi, Saeid},
+  journal={Information Fusion},
+  volume={76},
+  pages={243--297},
+  year={2021},
+  publisher={Elsevier},
+  doi={10.1016/j.inffus.2021.05.008}
+}
+
+@article{psaros2023,
+  title={Uncertainty quantification in scientific machine learning: Methods, metrics, and comparisons},
+  author={Psaros, Apostolos F. and Meng, Xuhui and Zou, Zongren and Guo, Ling and Karniadakis, George Em},
+  journal={Journal of Computational Physics},
+  volume={477},
+  pages={111902},
+  year={2023},
+  publisher={Elsevier},
+  doi={10.1016/j.jcp.2022.111902}
+}
+
+@article{hullermeier2021,
+  title={Aleatoric and epistemic uncertainty in machine learning: an introduction to concepts and methods},
+  author={H{\"u}llermeier, Eyke and Waegeman, Willem},
+  journal={Machine Learning},
+  volume={110},
+  pages={457--506},
+  year={2021},
+  publisher={Springer},
+  doi={10.1007/s10994-021-05946-3}
+}
+
+@book{vovk2005,
+  title={Algorithmic Learning in a Random World},
+  author={Vovk, Vladimir and Gammerman, Alex and Shafer, Glenn},
+  year={2005},
+  publisher={Springer},
+  doi={10.1007/b106715}
+}
+
+% ─── 47–50  VQA / barren plateaus / noise ─────────────────────────
+
+@article{larocca2023,
+  title={Theory of overparametrization in quantum neural networks},
+  author={Larocca, Mart{\'i}n and Ju, Nathan and Garc{\'i}a-Mart{\'i}n, Diego and Coles, Patrick J. and Cerezo, Marco},
+  journal={Nature Computational Science},
+  volume={3},
+  number={6},
+  pages={542--551},
+  year={2023},
+  publisher={Nature Publishing Group},
+  doi={10.1038/s43588-023-00542-x}
+}
+
+@article{mcclean2018,
+  title={Barren plateaus in quantum neural network training landscapes},
+  author={McClean, Jarrod R. and Boixo, Sergio and Smelyanskiy, Vadim N. and Babbush, Ryan and Neven, Hartmut},
+  journal={Nature Communications},
+  volume={9},
+  pages={4812},
+  year={2018},
+  publisher={Nature Publishing Group},
+  doi={10.1038/s41467-018-07090-4}
+}
+
+@article{arrasmith2021,
+  title={Effect of barren plateaus on gradient-free optimization},
+  author={Arrasmith, Andrew and Cerezo, M. and Czarnik, Piotr and Cincio, Lukasz and Coles, Patrick J.},
+  journal={Quantum},
+  volume={5},
+  pages={558},
+  year={2021},
+  doi={10.22331/q-2021-10-05-558}
+}
+
+@article{schuld2019,
+  title={Evaluating analytic gradients on quantum hardware},
+  author={Schuld, Maria and Bergholm, Ville and Gogolin, Christian and Izaac, Josh and Killoran, Nathan},
+  journal={Physical Review A},
+  volume={99},
+  number={3},
+  pages={032331},
+  year={2019},
+  publisher={APS},
+  doi={10.1103/physreva.99.032331}
+}
+
+@article{wang2021noise,
+  title={Noise-induced barren plateaus in variational quantum algorithms},
+  author={Wang, Samson and Fontana, Enrico and Cerezo, M. and Sharma, Kunal and Sone, Akira and Cincio, Lukasz and Coles, Patrick J.},
+  journal={Nature Communications},
+  volume={12},
+  pages={6961},
+  year={2021},
+  publisher={Nature Publishing Group},
+  doi={10.1038/s41467-021-22539-9}
+}
+
+% ─── 51–53  MaxCut / semidefinite relaxation ──────────────────────
+
+@article{goemans1995,
+  title={Improved approximation algorithms for maximum cut and satisfiability problems using semidefinite programming},
+  author={Goemans, Michel X. and Williamson, David P.},
+  journal={Journal of the ACM},
+  volume={42},
+  number={6},
+  pages={1115--1145},
+  year={1995},
+  publisher={ACM},
+  doi={10.1145/227683.227684}
+}
+
+@article{hastad2001,
+  title={Some optimal inapproximability results},
+  author={H{\aa}stad, Johan},
+  journal={Journal of the ACM},
+  volume={48},
+  number={4},
+  pages={798--859},
+  year={2001},
+  publisher={ACM},
+  doi={10.1145/502090.502098}
+}
+
+% ─── 54–59  Optimal transport ─────────────────────────────────────
+
+@book{villani2009,
+  title={Optimal Transport: Old and New},
+  author={Villani, C{\'e}dric},
+  volume={338},
+  year={2009},
+  publisher={Springer},
+  doi={10.1007/978-3-540-71050-9}
+}
+
+@article{peyre2019,
+  title={Computational optimal transport: With applications to data science},
+  author={Peyr{\'e}, Gabriel and Cuturi, Marco},
+  journal={Foundations and Trends in Machine Learning},
+  volume={11},
+  number={5--6},
+  pages={355--607},
+  year={2019},
+  doi={10.1561/2200000073}
+}
+
+@article{dowson1982,
+  title={The {Fr\'echet} distance between multivariate normal distributions},
+  author={Dowson, D. C. and Landau, B. V.},
+  journal={Journal of Multivariate Analysis},
+  volume={12},
+  number={3},
+  pages={450--455},
+  year={1982},
+  publisher={Elsevier},
+  doi={10.1016/0047-259x(82)90077-x}
+}
+
+@inproceedings{arjovsky2017,
+  title={Wasserstein generative adversarial networks},
+  author={Arjovsky, Martin and Chintala, Soumith and Bottou, L{\'e}on},
+  booktitle={International Conference on Machine Learning},
+  pages={214--223},
+  year={2017},
+  publisher={PMLR}
+}
+
+@inproceedings{cuturi2013,
+  title={Sinkhorn distances: Lightspeed computation of optimal transport},
+  author={Cuturi, Marco},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={26},
+  year={2013}
+}
+
+@inproceedings{frogner2015,
+  title={Learning with a {Wasserstein} loss},
+  author={Frogner, Charlie and Zhang, Chiyuan and Mobahi, Hossein and Arber, Mauricio and Poggio, Tomaso},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={28},
+  year={2015}
+}
+
+% ─── 60–64  Contrastive / metric learning ─────────────────────────
+
+@inproceedings{khosla2020,
+  title={Supervised contrastive learning},
+  author={Khosla, Prannay and Teterwak, Piotr and Wang, Chen and Sarna, Aaron and Tian, Yonglong and Isola, Phillip and Maschinot, Aaron and Liu, Ce and Krishnan, Dilip},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={33},
+  pages={18661--18673},
+  year={2020}
+}
+
+@inproceedings{you2020,
+  title={Graph contrastive learning with augmentations},
+  author={You, Yuning and Chen, Tianlong and Sui, Yongduo and Chen, Ting and Wang, Zhangyang and Shen, Yang},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={33},
+  pages={5812--5823},
+  year={2020}
+}
+
+@inproceedings{chen2020simclr,
+  title={A simple framework for contrastive learning of visual representations},
+  author={Chen, Ting and Kornblith, Simon and Norouzi, Mohammad and Hinton, Geoffrey},
+  booktitle={International Conference on Machine Learning},
+  pages={1597--1607},
+  year={2020},
+  publisher={PMLR}
+}
+
+@article{oord2018,
+  title={Representation learning with contrastive predictive coding},
+  author={van den Oord, A{\"a}ron and Li, Yazhe and Vinyals, Oriol},
+  journal={arXiv preprint arXiv:1807.03748},
+  year={2018},
+  doi={10.48550/arxiv.1807.03748}
+}
+
+@inproceedings{suresh2021,
+  title={Adversarial graph augmentation to improve graph contrastive learning},
+  author={Suresh, Susheel and Li, Pan and Hao, Cong and Nishi, Georgia},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={34},
+  pages={15920--15933},
+  year={2021}
+}
+
+% ─── 65–69  Quantum computing hardware and noise ──────────────────
+
+@article{preskill2018,
+  title={Quantum computing in the {NISQ} era and beyond},
+  author={Preskill, John},
+  journal={Quantum},
+  volume={2},
+  pages={79},
+  year={2018},
+  doi={10.22331/q-2018-08-06-79}
+}
+
+% ─── 70–74  Optimization / landscape theory ───────────────────────
+
+@inproceedings{kingma2015,
+  title={Adam: A method for stochastic optimization},
+  author={Kingma, Diederik P. and Ba, Jimmy},
+  booktitle={International Conference on Learning Representations},
+  year={2015},
+  url={https://arxiv.org/abs/1412.6980}
+}
+
+@article{nelder1965,
+  title={A simplex method for function minimization},
+  author={Nelder, J. A. and Mead, R.},
+  journal={The Computer Journal},
+  volume={7},
+  number={4},
+  pages={308--313},
+  year={1965},
+  publisher={Oxford University Press},
+  doi={10.1093/comjnl/7.4.308}
+}
+
+% ─── 75–78  Graph theory / network science ────────────────────────
+
+@article{erdos1959,
+  title={On random graphs {I}},
+  author={Erd\H{o}s, P. and R{\'e}nyi, A.},
+  journal={Publicationes Mathematicae Debrecen},
+  volume={6},
+  pages={290--297},
+  year={1959}
+}
+
+@article{barabasi1999,
+  title={Emergence of scaling in random networks},
+  author={Barab{\'a}si, Albert-L{\'a}szl{\'o} and Albert, R{\'e}ka},
+  journal={Science},
+  volume={286},
+  number={5439},
+  pages={509--512},
+  year={1999},
+  publisher={AAAS},
+  doi={10.1126/science.286.5439.509}
+}
+
+@article{watts1998,
+  title={Collective dynamics of `small-world' networks},
+  author={Watts, Duncan J. and Strogatz, Steven H.},
+  journal={Nature},
+  volume={393},
+  number={6684},
+  pages={440--442},
+  year={1998},
+  publisher={Nature Publishing Group},
+  doi={10.1038/30918}
+}
+
+@article{ba2016,
+  title={Layer normalization},
+  author={Ba, Jimmy Lei and Kiros, Jamie Ryan and Hinton, Geoffrey E.},
+  journal={arXiv preprint arXiv:1607.06450},
+  year={2016},
+  doi={10.48550/arxiv.1607.06450},
+  url={https://openreview.net/forum?id=BJLa_ZC9}
+}
+
+% ─── 79–86  Additional references for expanded paper ──────────────
+
+@incollection{karp1972,
+  title={Reducibility among combinatorial problems},
+  author={Karp, Richard M.},
+  booktitle={Complexity of Computer Computations},
+  pages={85--103},
+  year={1972},
+  publisher={Springer},
+  address={Boston, MA},
+  doi={10.1007/978-1-4684-2001-2_9}
+}
+
+@article{khot2007,
+  title={Optimal inapproximability results for {MAX-CUT} and other 2-variable {CSPs}?},
+  author={Khot, Subhash and Kindler, Guy and Mossel, Elchanan and O'Donnell, Ryan},
+  journal={SIAM Journal on Computing},
+  volume={37},
+  number={1},
+  pages={319--357},
+  year={2007},
+  publisher={SIAM},
+  doi={10.1137/s0097539705447372}
+}
+
+@article{fiedler1973,
+  title={Algebraic connectivity of graphs},
+  author={Fiedler, Miroslav},
+  journal={Czechoslovak Mathematical Journal},
+  volume={23},
+  number={2},
+  pages={298--305},
+  year={1973},
+  doi={10.21136/cmj.1973.101168}
+}
+
+@article{weisfeiler1968,
+  title={The reduction of a graph to canonical form and the algebra which appears therein},
+  author={Weisfeiler, Boris and Leman, Andrei},
+  journal={NTI, Series 2},
+  volume={9},
+  pages={12--16},
+  year={1968}
+}
+
+@book{conn2000,
+  title={Trust Region Methods},
+  author={Conn, Andrew R. and Gould, Nicholas I. M. and Toint, Philippe L.},
+  year={2000},
+  publisher={SIAM},
+  doi={10.1137/1.9780898719857}
+}
+
+% ─── Additional references (R5) ──────────────────────────────────
+
+@inproceedings{bartlett2017,
+  title={Spectrally-normalized margin bounds for neural networks},
+  author={Bartlett, Peter L. and Foster, Dylan J. and Telgarsky, Matus J.},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={30},
+  year={2017}
+}
+
+@inproceedings{neyshabur2018,
+  title={A {PAC}-{B}ayesian approach to spectrally-normalized margin bounds for neural networks},
+  author={Neyshabur, Behnam and Bhojanapalli, Srinadh and Srebro, Nathan},
+  booktitle={International Conference on Learning Representations},
+  year={2018},
+  url={https://openreview.net/forum?id=Skz_WfbCZ}
+}
+
+@inproceedings{golowich2018,
+  title={Size-independent sample complexity of neural networks},
+  author={Golowich, Noah and Rakhlin, Alexander and Shamir, Ohad},
+  booktitle={Proceedings of the 31st Conference on Learning Theory},
+  pages={297--299},
+  year={2018}
+}
+
+@inproceedings{romano2019,
+  title={Conformalized quantile regression},
+  author={Romano, Yaniv and Patterson, Evan and Cand{\`e}s, Emmanuel},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={32},
+  year={2019}
+}
+
+@article{angelopoulos2021,
+  title={A gentle introduction to conformal prediction and distribution-free uncertainty quantification},
+  author={Angelopoulos, Anastasios N. and Bates, Stephen},
+  journal={arXiv preprint arXiv:2107.07511},
+  year={2021},
+  doi={10.48550/arxiv.2107.07511}
+}
+
