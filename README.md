@@ -3,7 +3,7 @@
 ### GNN-Based Parameter Prediction, Learned Warm-Start Initialization, and Convergence Analysis — with Applications to Network-Based Biomedical Systems
 
 [![Project Website](https://img.shields.io/badge/Project_Website-Open-0f766e?style=for-the-badge)](https://thmolena.github.io/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/)
-[![Research Paper PDF](https://img.shields.io/badge/Paper-PDF-1d4ed8?style=for-the-badge)](research_paper/main.pdf)
+[![Research Paper PDF](https://img.shields.io/badge/Paper-PDF-1d4ed8?style=for-the-badge)](website/notebooks_html/main.pdf)
 
 This repository develops **graph neural network (GNN) methods for graph-conditioned QAOA parameter prediction and graph-based biomedical inference**. The central technical idea is that both settings can be cast as learning on structured graphs: transcriptomic co-expression graphs for depth-2 QAOA MaxCut initialization, and cardiotocography patient-similarity graphs for node-level pathologic-risk prediction.
 
@@ -134,7 +134,7 @@ This section summarizes the takeaways already established above rather than repe
 | Artifact | Path | Purpose |
 | --- | --- | --- |
 | Website entry point | [index.html](index.html) | Project landing page |
-| Paper PDF | [research_paper/main.pdf](research_paper/main.pdf) | Manuscript version of the project |
+| Paper PDF | [website/notebooks_html/main.pdf](website/notebooks_html/main.pdf) | Manuscript version of the project |
 | Notebook HTML exports | [website/notebooks_html](website/notebooks_html) | Static rendered analyses |
 | QAOA baselines | [experiments/qaoa/run_qaoa_baselines.py](experiments/qaoa/run_qaoa_baselines.py) | Reproduce QAOA comparison runs |
 | Biomedical baselines | [experiments/biomedical/run_bio_baselines.py](experiments/biomedical/run_bio_baselines.py) | Reproduce CTG comparison runs |
@@ -169,9 +169,9 @@ notebooks/      core analyses and demonstration notebooks
 experiments/    baseline scripts and extracted evaluations
 src/            models, simulators, utilities, and serving code
 data/           source biomedical and transcriptomic inputs
-outputs/        processed datasets, tables, and generated artifacts
-research_paper/ manuscript draft
-website/        static site and exported notebook HTML
+outputs/        processed datasets, tables, and generated results
+submission/     manuscript source (LaTeX)
+website/        static site, exported notebook HTML, and paper PDF
 ```
 
 ## License
