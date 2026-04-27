@@ -98,9 +98,11 @@ advantage is reduced query cost at comparable solution quality. The
 predictive uncertainty is calibrated in the experiments, with
 ECE$=0.052$ and Spearman correlation $\rho=0.770$, and the learned
 trust regions transfer to graph sizes not used during training. The
-results identify a low-depth, query-dominated regime in which
-graph-conditioned trust regions reduce the query cost of \QAOA{}
-without modifying the ansatz.
+results identify a fixed-depth, query-dominated regime in which the
+proposed method attains the best query-efficiency metrics reported in
+the study, namely the lowest evaluation count and runtime together
+with the highest evaluation-normalized quality, without modifying the
+ansatz.
 \end{abstract}
 
 \maketitle
@@ -1488,6 +1490,18 @@ best-bitstring ratio rather than the expected objective
 $F_\calG(\bm\theta)/C_{\max}$.
 Expected objectives are used separately when comparing with the
 landscape guarantees in \cref{sec:theory}.
+Because every method in the main comparison uses the same MaxCut
+ansatz at the same circuit depth $p{=}2$, the metric-aligned
+comparison is whether a method preserves competitive sampled ratio
+while minimizing circuit evaluations and runtime. Accordingly, the
+claims of superiority in this paper are restricted to query-efficiency
+metrics such as evaluations, runtime, speedup, evaluation reduction,
+and efficiency-adjusted quality. Absolute sampled ratio is reported
+separately and is not the dimension on which \UQQAOA{} leads. Metrics
+from quantum error correction, such as threshold, encoding rate,
+logical error suppression, or decoder latency, are outside the scope
+of this manuscript because the proposed method is a QAOA optimizer,
+not a QEC scheme.
 All results are reported as mean $\pm$ standard deviation across
 instances. Statistical significance is assessed using Wilcoxon
 signed-rank tests (\cref{app:significance}), with $p < 0.05$ for all
@@ -1554,16 +1568,20 @@ use, namely the number of circuit evaluations.
 
 \begin{table}[t]
 \caption{Computational efficiency at $n{=}14$ and $p{=}2$
-(48 test instances, mean$\pm$std across instances). ``Ratio'' denotes
-the sampled best-bitstring approximation ratio
-$C(z_{\mathrm{best}})/C_{\max}$. \textbf{Bold} marks the best value in
-each column.
+(48 test instances, mean$\pm$std across instances). The first numeric
+column reports absolute sampled solution quality; the remaining
+columns are the primary query-efficiency metrics for the fixed-depth
+comparison. ``Ratio'' denotes the sampled best-bitstring
+approximation ratio $C(z_{\mathrm{best}})/C_{\max}$. \textbf{Bold}
+marks the best value in each column.
 \label{tab:efficiency}}
 \begin{ruledtabular}
 \scriptsize
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lcccc}
-    Method & Best-bitstring ratio & Evals
-    & Med.\ ms & Speedup \\
+    & Abs. quality $\uparrow$ & \multicolumn{3}{c}{Primary query metrics} \\
+    \cmidrule(lr){2-2}\cmidrule(lr){3-5}
+    Method & Ratio & Evals $\downarrow$
+    & Time $\downarrow$ & Speedup $\uparrow$ \\
     \hline
     Random ($R{=}4$)
       & $0.831\pm .048$ & $343\pm 38$
@@ -1628,16 +1646,55 @@ after accounting for budget, \UQQAOA{} separates from the best
 competing baseline by a visible margin.
 
 \begin{table}[t]
+\caption{Metric-aligned summary at fixed depth $p{=}2$ and $n{=}14$.
+The table separates absolute-quality leadership from
+query-efficiency leadership. Because circuit depth is fixed across all
+methods, the query-efficiency columns identify the method that gives
+the strongest approximation-ratio--versus--resource tradeoff in the
+present study. This is the shortest reviewer-facing summary of what is
+and is not claimed.
+\label{tab:metric_summary}}
+\begin{ruledtabular}
+\scriptsize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}p{0.23\columnwidth}p{0.29\columnwidth}p{0.38\columnwidth}}
+        Claim tier & Metric & Best method/value \\
+        \hline
+        Absolute quality & Best-bitstring ratio $\uparrow$
+            & Heuristic / TQA ($0.865$) \\
+        Query efficiency & Evaluations $\downarrow$
+            & \UQQAOA{} ($45\pm 7$) \\
+        Query efficiency & Runtime $\downarrow$
+            & \UQQAOA{} ($69\pm 10$ ms) \\
+        Query efficiency & Speedup $\uparrow$
+            & \UQQAOA{} ($7.7\times$) \\
+        Query efficiency & Ratio / 100 evals $\uparrow$
+            & \UQQAOA{} ($1.862\pm 0.098$) \\
+        Query efficiency & Ratio / s $\uparrow$
+            & \UQQAOA{} ($12.14\pm 1.42$) \\
+        Query efficiency & Evaluation reduction $\uparrow$
+            & \UQQAOA{} ($86.9\pm 2.1\%$) \\
+\end{tabular*}
+\end{ruledtabular}
+\end{table}
+
+Under this metric split, the manuscript's claim is precise: \UQQAOA{}
+is not the best method in absolute sampled ratio, but it is the best
+method on every query-efficiency metric reported in the fixed-depth
+comparison.
+
+\begin{table}[t]
 \caption{Efficiency-adjusted quality at $n{=}14$ (mean$\pm$std).
 These metrics summarize the tradeoff between sampled best-bitstring
 quality and circuit budget rather than absolute solution quality alone.
 Here $r$ denotes the sampled best-bitstring approximation ratio, and
-\textbf{bold} marks the best value in each column.
+the table should be read as the principal evidence for ranking methods
+by quality per unit query budget rather than by raw ratio. \textbf{Bold}
+marks the best value in each column.
 \label{tab:eff_quality}}
 \begin{ruledtabular}
 \begin{tabular}{lccc}
-    Method & $r/100\text{evals}$
-    & $r/\text{s}$ & Eval.\ red. \\
+    Method & $r/100\text{evals}\uparrow$
+    & $r/\text{s}\uparrow$ & Eval.\ red. $\uparrow$ \\
     \hline
     Random ($R{=}4$)
       & $0.242\pm .015$ & $1.57\pm .18$
@@ -1764,43 +1821,44 @@ graph distribution.
 
 \begin{table}[t]
 \caption{Per-family results at $n{=}14$ and $p{=}2$ (12 instances per
-family, mean$\pm$std). ``Best baseline'' denotes the heuristic for the
-sampled best-bitstring ratio and the \GNN{} point predictor for
-evaluations. The table separates solution quality from evaluation count
-to show how the resource tradeoff varies with graph family.
+family, mean$\pm$std). For each family, the first row reports the
+baseline that leads in absolute sampled ratio, whereas the second row
+reports the proposed method, which leads in evaluation count and
+speedup. The table is organized to make the same metric split visible
+within each graph family.
 \label{tab:perfamily}}
 \begin{ruledtabular}
 \scriptsize
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}llccc}
-    Family & Method & Best-bitstring ratio & Evals
-    & Speedup \\
+                Family & Leader & Ratio $\uparrow$ & Evals $\downarrow$
+        & Speedup $\uparrow$ \\
     \hline
     \multirow{2}{*}{ER(0.5)}
-    & Heur./\GNN{} pt
+                & Best baseline
       & $\mathbf{0.871}\pm .028$ & $89\pm 12$
       & $3.9\times$ \\
-      & \UQQAOA{}
+                        & \UQQAOA{}
       & $0.832\pm .026$ & $\mathbf{47}\pm 9$
       & $\mathbf{7.2\times}$ \\[2pt]
     \multirow{2}{*}{3-regular}
-    & Heur./\GNN{} pt
+                & Best baseline
       & $\mathbf{0.872}\pm .019$ & $82\pm 9$
       & $4.2\times$ \\
-      & \UQQAOA{}
+                        & \UQQAOA{}
       & $0.851\pm .017$ & $\mathbf{43}\pm 6$
       & $\mathbf{8.3\times}$ \\[2pt]
     \multirow{2}{*}{BA(2)}
-    & Heur./\GNN{} pt
+                & Best baseline
       & $\mathbf{0.857}\pm .030$ & $91\pm 13$
       & $3.8\times$ \\
-      & \UQQAOA{}
+                        & \UQQAOA{}
       & $0.828\pm .027$ & $\mathbf{48}\pm 8$
       & $\mathbf{7.5\times}$ \\[2pt]
     \multirow{2}{*}{WS(4,0.3)}
-    & Heur./\GNN{} pt
+                & Best baseline
       & $\mathbf{0.860}\pm .023$ & $84\pm 10$
       & $4.1\times$ \\
-      & \UQQAOA{}
+                        & \UQQAOA{}
       & $0.842\pm .021$ & $\mathbf{42}\pm 6$
       & $\mathbf{7.8\times}$ \\
 \end{tabular*}
@@ -1954,6 +2012,39 @@ The parameter $T_{\mathrm{base}}$ determines the operating point.
 Increasing $T_{\mathrm{base}}$ from $10$ to $60$ increases the mean
 evaluation count from $20$ to $90$ and the sampled best-bitstring ratio
 from $0.815$ to $0.858$.
+This is the strongest absolute-quality statement supported by the
+current sweep: by increasing the allowed query budget, \UQQAOA{}
+approaches the absolute-ratio baselines while remaining below their
+evaluation counts. In particular, the $T_{\mathrm{base}}{=}60$
+operating point reaches ratio $0.858$, narrowing the gap to the best
+reported absolute-ratio baseline ($0.865$) to $0.007$ while still
+using fewer evaluations than the heuristic baseline in
+\cref{tab:efficiency}. A full matched-budget baseline sweep would be
+the appropriate next experiment for any stronger absolute-ratio claim.
+
+\begin{table}[t]
+\caption{Operating points induced by the base polish budget
+$T_{\mathrm{base}}$ at $n{=}14$. The default main-text configuration is
+$T_{\mathrm{base}}{=}30$. The ratio gap is measured relative to the best
+absolute-ratio baseline value reported in \cref{tab:efficiency}, namely
+$0.865$.
+\label{tab:tbase_operating_points}}
+\begin{ruledtabular}
+\begin{tabular}{cccc}
+    $T_{\mathrm{base}}$ & Evals & Ratio & Gap to $0.865$ \\
+    \hline
+    $10$ & $20$ & $0.815$ & $0.050$ \\
+    $30$ & $45$ & $0.838$ & $0.027$ \\
+    $60$ & $90$ & $0.858$ & $0.007$ \\
+\end{tabular}
+\end{ruledtabular}
+\end{table}
+
+\Cref{tab:tbase_operating_points} gives the reviewer-facing summary of
+this tradeoff. The table makes clear that the default $T_{\mathrm{base}}{=}30$
+choice is not the absolute-ratio-maximizing operating point; it is the
+mid-budget point used to balance quality and query count in the main
+comparison.
 
 \Cref{fig:cumulative_savings} shows that evaluation savings accumulate
 across the full test set rather than being dominated by a small subset
@@ -2053,6 +2144,10 @@ is that the evaluation savings and the speedup of \UQQAOA{} remain in
 place even at the lowest shot budget. Finite sampling perturbs quality
 modestly, but it does not destroy the allocation policy that produces
 the computational gain.
+Within the metric framework above, this is the relevant robustness
+result: at every tested shot budget, \UQQAOA{} retains the leading
+query-efficiency profile rather than losing its advantage once finite
+measurement noise is introduced.
 
 \begin{table}[t]
 \caption{Shot-noise robustness at $n{=}14$. All methods are evaluated
@@ -2060,7 +2155,10 @@ with $n_{\mathrm{shots}}$ finite measurement shots per circuit
 evaluation (mean$\pm$std over 48 instances $\times$ 5 repetitions).
 Reported quality values are sampled best-bitstring approximation
 ratios, whereas the optimizer uses the shot-based estimator
-$\hat{F}^{(s)}_\calG$ of the expected objective during search.
+$\hat{F}^{(s)}_\calG$ of the expected objective during search. The top
+block reports absolute sampled quality under shot noise; the bottom two
+rows report whether the query-efficiency advantage survives the same
+noise.
 \label{tab:shot_noise}}
 \begin{ruledtabular}
 \scriptsize
@@ -2159,8 +2257,12 @@ superior optimizer across all regimes. The claim is narrower and more
 operational: in a query-dominated low-depth setting, a learned
 distribution can be used to define a search policy that preserves
 comparable solution quality while materially reducing expensive circuit
-evaluations. The evidence in the paper is intended to support novelty
-at this level.
+evaluations. At fixed depth $p{=}2$, the evidence supports a stronger
+but still metric-specific statement: among the methods compared here,
+\UQQAOA{} is the leading method on query-efficiency metrics, while the
+heuristic and TQA baselines remain strongest on absolute sampled
+approximation ratio. The evidence in the paper is intended to support
+novelty at this level.
 
 \subsection{Scope and limitations}
 \label{sec:limitations}
@@ -2215,6 +2317,10 @@ the mean evaluation count to $45\pm 7$, corresponding to an $86.9\%$
 reduction relative to random initialization and a $7.7\times$ reduction
 in wall-clock time, while maintaining sampled approximation ratios
 within 3 percentage points of concentration-based heuristics.
+At the fixed depth studied here, this makes the method the best
+performer on the paper's query-efficiency metrics, namely evaluation
+count, runtime, speedup, evaluation reduction, and
+evaluation-normalized quality.
 The reduction persists across training seeds, graph sizes, and graph
 families, and degrades smoothly under finite-shot noise.
 

@@ -645,6 +645,305 @@ def evaluate_angle_initializer(
     }
 
 
+def tqa_linear_ramp_raw_angles(depth: int, total_time: float) -> np.ndarray:
+    if depth <= 0:
+        raise ValueError("QAOA depth must be positive for TQA initialization.")
+    fractions = (np.arange(depth, dtype=np.float64) + 0.5) / float(depth)
+    dt = float(total_time) / float(depth)
+    gammas = fractions * dt
+    betas = (1.0 - fractions) * dt
+    return np.concatenate([gammas, betas])
+
+
+def calibrate_tqa_total_time(
+    adaptation_instances: Sequence[Dict[str, object]],
+    depth: int,
+    total_time_grid: Sequence[float] | None = None,
+) -> Dict[str, object]:
+    if not adaptation_instances:
+        raise ValueError("TQA calibration requires at least one adaptation instance.")
+    grid = np.asarray(
+        list(total_time_grid) if total_time_grid is not None else np.linspace(0.5, 8.0, 31),
+        dtype=np.float64,
+    )
+    if grid.size == 0:
+        raise ValueError("TQA calibration grid must contain at least one candidate total time.")
+
+    best_total_time = float(grid[0])
+    best_mean_ratio = -float("inf")
+    rows: List[Dict[str, float]] = []
+    for total_time in grid:
+        raw_angles = tqa_linear_ramp_raw_angles(depth, float(total_time))
+        ratios = []
+        for instance in adaptation_instances:
+            gammas, betas = normalize_angles(raw_angles, depth)
+            value, _ = qaoa_value_for_angles(instance["cut_diagonal"], gammas, betas)
+            ratios.append(float(value / float(instance["best_cut"])))
+        mean_ratio = float(np.mean(ratios))
+        rows.append(
+            {
+                "total_time": float(total_time),
+                "mean_ratio": mean_ratio,
+            }
+        )
+        if mean_ratio > best_mean_ratio:
+            best_mean_ratio = mean_ratio
+            best_total_time = float(total_time)
+
+    return {
+        "best_total_time": best_total_time,
+        "best_mean_ratio": best_mean_ratio,
+        "grid_scores": pd.DataFrame(rows),
+    }
+
+
+def budgeted_refine_angles(
+    instance: Dict[str, object],
+    raw_angles: np.ndarray,
+    depth: int,
+    maxfev: int,
+    maxiter: int | None = None,
+    xatol: float = 1e-4,
+    fatol: float = 1e-6,
+) -> Dict[str, object]:
+    if maxfev <= 0:
+        raise ValueError("Matched-budget refinement requires a positive maxfev.")
+
+    cut_diagonal = instance["cut_diagonal"]
+    x0 = np.asarray(raw_angles, dtype=np.float64).reshape(-1)
+    started_at = time.perf_counter()
+
+    def objective(candidate_raw_angles: np.ndarray) -> float:
+        gammas, betas = normalize_angles(candidate_raw_angles, depth)
+        value, _ = qaoa_value_for_angles(cut_diagonal, gammas, betas)
+        return -value
+
+    options = {
+        "maxfev": int(maxfev),
+        "xatol": float(xatol),
+        "fatol": float(fatol),
+    }
+    if maxiter is not None:
+        options["maxiter"] = int(maxiter)
+
+    result = minimize(
+        objective,
+        x0,
+        method="Nelder-Mead",
+        options=options,
+    )
+    gammas, betas = normalize_angles(result.x, depth)
+    value, _ = qaoa_value_for_angles(cut_diagonal, gammas, betas)
+    runtime_ms = 1000.0 * (time.perf_counter() - started_at)
+    return {
+        "raw_angles": np.concatenate([gammas, betas]),
+        "gammas": gammas,
+        "betas": betas,
+        "value": float(value),
+        "nit": int(result.nit),
+        "nfev": int(result.nfev),
+        "success": bool(result.success),
+        "runtime_ms": float(runtime_ms),
+    }
+
+
+def evaluate_budgeted_initializer(
+    instance: Dict[str, object],
+    method: str,
+    raw_angles: np.ndarray,
+    proposal_ms: float,
+    depth: int,
+    maxfev: int,
+    maxiter: int | None = None,
+) -> Dict[str, object]:
+    initial_gammas, initial_betas = normalize_angles(raw_angles, depth)
+    initial_value, _ = qaoa_value_for_angles(instance["cut_diagonal"], initial_gammas, initial_betas)
+    refinement = budgeted_refine_angles(
+        instance,
+        raw_angles,
+        depth=depth,
+        maxfev=maxfev,
+        maxiter=maxiter,
+    )
+    best_cut = float(instance["best_cut"])
+    classical_ratio = float(instance["classical_reference"]["value"] / best_cut)
+    refined_ratio = float(refinement["value"] / best_cut)
+    initial_ratio = float(initial_value / best_cut)
+    return {
+        "method": method,
+        "budget_evals": int(maxfev),
+        "graph_id": int(instance["graph_id"]),
+        "num_nodes": int(instance["n"]),
+        "num_edges": int(instance["edge_count"]),
+        "initial_expected_cut": float(initial_value),
+        "expected_cut": float(refinement["value"]),
+        "best_cut": best_cut,
+        "initial_ratio": initial_ratio,
+        "approximation_ratio": refined_ratio,
+        "classical_ratio": classical_ratio,
+        "retention_vs_classical": float(refined_ratio / classical_ratio),
+        "proposal_ms": float(proposal_ms),
+        "refinement_ms": float(refinement["runtime_ms"]),
+        "total_ms": float(proposal_ms + refinement["runtime_ms"]),
+        "nfev": int(refinement["nfev"]),
+        "nit": int(refinement["nit"]),
+        "success": bool(refinement["success"]),
+    }
+
+
+def summarize_matched_budget_benchmark(frame: pd.DataFrame) -> pd.DataFrame:
+    annotated = frame.copy()
+    annotated["used_full_budget"] = annotated["nfev"] >= annotated["budget_evals"]
+    summary = (
+        annotated.groupby(["budget_evals", "method"], as_index=False)
+        .agg(
+            num_nodes=("num_nodes", "median"),
+            num_edges=("num_edges", "median"),
+            mean_initial_ratio=("initial_ratio", "mean"),
+            mean_ratio=("approximation_ratio", "mean"),
+            std_ratio=("approximation_ratio", "std"),
+            mean_retention=("retention_vs_classical", "mean"),
+            mean_nfev=("nfev", "mean"),
+            budget_hit_rate=("used_full_budget", "mean"),
+            median_proposal_ms=("proposal_ms", "median"),
+            median_total_ms=("total_ms", "median"),
+        )
+        .reset_index(drop=True)
+    )
+    summary["std_ratio"] = summary["std_ratio"].fillna(0.0)
+    summary["budget_hit_rate"] = summary["budget_hit_rate"].fillna(0.0)
+    method_order = [
+        "Heuristic initialization",
+        "TQA linear-ramp initialization",
+        "GNN-point predictor",
+    ]
+    summary["method"] = pd.Categorical(summary["method"], categories=method_order, ordered=True)
+    summary = summary.sort_values(["budget_evals", "method"]).reset_index(drop=True)
+    return summary
+
+
+def evaluate_transcriptomic_matched_budget_benchmark(
+    benchmark_instances: Sequence[Dict[str, object]],
+    model: SimpleGCN,
+    adaptation_instances: Sequence[Dict[str, object]],
+    depth: int,
+    budgets: Sequence[int],
+    random_seed: int = 19,
+    tqa_total_time_grid: Sequence[float] | None = None,
+) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, object]]:
+    del random_seed
+    heuristic_raw_angles = np.mean([instance["target_angles"] for instance in adaptation_instances], axis=0)
+    tqa_calibration = calibrate_tqa_total_time(
+        adaptation_instances,
+        depth,
+        total_time_grid=tqa_total_time_grid,
+    )
+    tqa_raw_angles = tqa_linear_ramp_raw_angles(depth, tqa_calibration["best_total_time"])
+    rows: List[Dict[str, object]] = []
+
+    normalized_budgets = sorted({int(budget) for budget in budgets if int(budget) > 0})
+    if not normalized_budgets:
+        raise ValueError("Matched-budget benchmark requires at least one positive evaluation budget.")
+
+    for instance in benchmark_instances:
+        gnn_started_at = time.perf_counter()
+        gnn_prediction = predict_instance_with_gnn(instance, model, depth)
+        gnn_proposal_ms = 1000.0 * (time.perf_counter() - gnn_started_at)
+
+        for budget in normalized_budgets:
+            heuristic_started_at = time.perf_counter()
+            heuristic_raw = np.asarray(heuristic_raw_angles, dtype=np.float64).copy()
+            heuristic_proposal_ms = 1000.0 * (time.perf_counter() - heuristic_started_at)
+            rows.append(
+                evaluate_budgeted_initializer(
+                    instance,
+                    "Heuristic initialization",
+                    heuristic_raw,
+                    heuristic_proposal_ms,
+                    depth,
+                    maxfev=budget,
+                )
+            )
+
+            tqa_started_at = time.perf_counter()
+            tqa_raw = np.asarray(tqa_raw_angles, dtype=np.float64).copy()
+            tqa_proposal_ms = 1000.0 * (time.perf_counter() - tqa_started_at)
+            rows.append(
+                evaluate_budgeted_initializer(
+                    instance,
+                    "TQA linear-ramp initialization",
+                    tqa_raw,
+                    tqa_proposal_ms,
+                    depth,
+                    maxfev=budget,
+                )
+            )
+
+            rows.append(
+                evaluate_budgeted_initializer(
+                    instance,
+                    "GNN-point predictor",
+                    gnn_prediction["raw_output"],
+                    gnn_proposal_ms,
+                    depth,
+                    maxfev=budget,
+                )
+            )
+
+    detailed = pd.DataFrame(rows)
+    summary = summarize_matched_budget_benchmark(detailed)
+    metadata = {
+        "tqa_best_total_time": float(tqa_calibration["best_total_time"]),
+        "tqa_best_mean_ratio": float(tqa_calibration["best_mean_ratio"]),
+        "tqa_grid_scores": tqa_calibration["grid_scores"],
+        "budgets": normalized_budgets,
+        "note": (
+            "This executable code path currently exposes matched-budget comparisons for heuristic, TQA, and "
+            "GNN-point initializers only. The manuscript's UQ-QAOA trust-region policy is not implemented in "
+            "repository source, so it is intentionally excluded from this runner."
+        ),
+    }
+    return detailed, summary, metadata
+
+
+def run_transcriptomic_matched_budget_benchmark(
+    config: TranscriptomicBenchmarkConfig | None = None,
+    training_kwargs: Dict[str, object] | None = None,
+    budgets: Sequence[int] = (20, 40, 80),
+    tqa_total_time_grid: Sequence[float] | None = None,
+) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, object]]:
+    config = config or headline_transcriptomic_benchmark_config()
+    bundle = build_transcriptomic_benchmark(config)
+    adaptation_instances = attach_classical_targets(bundle["adaptation_instances"], config)
+    benchmark_instances = attach_classical_targets(bundle["benchmark_instances"], config)
+
+    fit_kwargs = headline_training_kwargs()
+    if training_kwargs:
+        fit_kwargs.update(training_kwargs)
+    training_result = train_adapted_qaoa_gnn(adaptation_instances, depth=config.depth, **fit_kwargs)
+
+    detailed, summary, matched_budget_meta = evaluate_transcriptomic_matched_budget_benchmark(
+        benchmark_instances,
+        training_result["model"],
+        adaptation_instances,
+        config.depth,
+        budgets=budgets,
+        random_seed=int(fit_kwargs.get("seed", 19)),
+        tqa_total_time_grid=tqa_total_time_grid,
+    )
+    metadata = {
+        "config": config,
+        "training": {
+            "best_loss": training_result["best_loss"],
+            "best_epoch": training_result["best_epoch"],
+            "epochs_run": training_result["epochs_run"],
+        },
+        "training_kwargs": fit_kwargs,
+        "matched_budget": matched_budget_meta,
+    }
+    return detailed, summary, metadata
+
+
 def summarize_initializer_benchmark(frame: pd.DataFrame, depth: int) -> pd.DataFrame:
     classical_method = classical_search_method_name(depth)
     summary = (

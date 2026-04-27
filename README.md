@@ -3,7 +3,7 @@
 ### GNN-Based Parameter Prediction, Learned Warm-Start Initialization, and Convergence Analysis — with Applications to Network-Based Biomedical Systems
 
 [![Project Website](https://img.shields.io/badge/Project_Website-Open-0f766e?style=for-the-badge)](https://thmolena.github.io/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/)
-[![Research Paper PDF](https://img.shields.io/badge/Paper-PDF-1d4ed8?style=for-the-badge)](research_paper/research_paper.pdf)
+[![Research Paper PDF](https://img.shields.io/badge/Paper-PDF-1d4ed8?style=for-the-badge)](research_paper/main.pdf)
 
 This repository develops **graph neural network (GNN) methods for graph-conditioned QAOA parameter prediction and graph-based biomedical inference**. The central technical idea is that both settings can be cast as learning on structured graphs: transcriptomic co-expression graphs for depth-2 QAOA MaxCut initialization, and cardiotocography patient-similarity graphs for node-level pathologic-risk prediction.
 
@@ -84,8 +84,8 @@ The biomedical contribution is not a claim that graph learning surpasses the bes
       <p><strong>Held-out QAOA quality.</strong> Graph-conditioned GNN: <strong>0.8682</strong>. Direct classical search: <strong>0.8686</strong>.</p>
     </td>
     <td width="50%">
-      <img src="website/notebooks_html/figures/qaoa_demo_graph_conditioned_initialization.png" alt="QAOA speed-quality tradeoff" />
-      <p><strong>QAOA cost reduction.</strong> Median latency drops from <strong>675.9 ms</strong> to <strong>0.256 ms</strong>, about <strong>2640x</strong>.</p>
+      <img src="website/notebooks_html/figures/qaoa_demo_landscape_geometry.png" alt="QAOA landscape geometry analysis" />
+      <p><strong>QAOA landscape geometry.</strong> The visible high-value basin is concentrated, which helps explain why learned warm starts reduce search burden on held-out graphs.</p>
     </td>
   </tr>
   <tr>
@@ -134,7 +134,7 @@ This section summarizes the takeaways already established above rather than repe
 | Artifact | Path | Purpose |
 | --- | --- | --- |
 | Website entry point | [index.html](index.html) | Project landing page |
-| Paper PDF | [research_paper/research_paper.pdf](research_paper/research_paper.pdf) | Manuscript version of the project |
+| Paper PDF | [research_paper/main.pdf](research_paper/main.pdf) | Manuscript version of the project |
 | Notebook HTML exports | [website/notebooks_html](website/notebooks_html) | Static rendered analyses |
 | QAOA baselines | [experiments/qaoa/run_qaoa_baselines.py](experiments/qaoa/run_qaoa_baselines.py) | Reproduce QAOA comparison runs |
 | Biomedical baselines | [experiments/biomedical/run_bio_baselines.py](experiments/biomedical/run_bio_baselines.py) | Reproduce CTG comparison runs |

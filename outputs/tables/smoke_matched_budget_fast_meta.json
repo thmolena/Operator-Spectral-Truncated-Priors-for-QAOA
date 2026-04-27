@@ -1,0 +1,38 @@
+{
+  "config": {
+    "top_gene_count": 16,
+    "target_edge_count": 18,
+    "benchmark_size": 1,
+    "benchmark_seed": 42,
+    "adaptation_size": 1,
+    "adaptation_seed": 200,
+    "subsample_size": 60,
+    "depth": 2,
+    "num_starts": 1,
+    "maxiter": 10,
+    "seed_offset": 1000,
+    "training_seed": 19
+  },
+  "training": {
+    "best_loss": 0.5586301684379578,
+    "best_epoch": 2,
+    "epochs_run": 2
+  },
+  "training_kwargs": {
+    "hidden_dim": 64,
+    "epochs": 2,
+    "lr": 0.0025,
+    "weight_decay": 5e-05,
+    "patience": 1,
+    "seed": 19
+  },
+  "matched_budget": {
+    "budgets": [
+      5,
+      10
+    ],
+    "tqa_best_total_time": 1.75,
+    "tqa_best_mean_ratio": 0.7519216113075975,
+    "note": "This executable code path currently exposes matched-budget comparisons for heuristic, TQA, and GNN-point initializers only. The manuscript's UQ-QAOA trust-region policy is not implemented in repository source, so it is intentionally excluded from this runner."
+  }
+}
