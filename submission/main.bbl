@@ -6,7 +6,7 @@
 %Control: page (0) single
 %Control: year (1) truncated
 %Control: production of eprint (0) enabled
-\begin{thebibliography}{76}%
+\begin{thebibliography}{75}%
 \makeatletter
 \providecommand \@ifxundefined [1]{%
  \@ifx{#1\undefined}
@@ -249,7 +249,7 @@
   {author} {\bibfnamefont {K.}~\bibnamefont {Sharma}}, \bibinfo {author}
   {\bibfnamefont {A.}~\bibnamefont {Sone}}, \bibinfo {author} {\bibfnamefont
   {L.}~\bibnamefont {Cincio}},\ and\ \bibinfo {author} {\bibfnamefont {P.~J.}\
-  \bibnamefont {Coles}},\ }\href {https://doi.org/10.1038/s41467-021-22539-9}
+  \bibnamefont {Coles}},\ }\href {https://doi.org/10.1038/s41467-021-27045-6}
   {\bibfield  {journal} {\bibinfo  {journal} {Nature Communications}\ }\textbf
   {\bibinfo {volume} {12}},\ \bibinfo {pages} {6961} (\bibinfo {year}
   {2021})}\BibitemShut {NoStop}%
@@ -343,16 +343,16 @@
   Vol.~\bibinfo {volume} {34}\ (\bibinfo {year} {2020})\ pp.\ \bibinfo {pages}
   {2367--2375}\BibitemShut {NoStop}%
 \bibitem [{\citenamefont {Tibaldi}\ \emph {et~al.}(2023)\citenamefont
-  {Tibaldi}, \citenamefont {Vodola}, \citenamefont {Notarnicola},\ and\
-  \citenamefont {Montangero}}]{tibaldi2023}%
+  {Tibaldi}, \citenamefont {Vodola}, \citenamefont {Tignone},\ and\
+  \citenamefont {Ercolessi}}]{tibaldi2023}%
   \BibitemOpen
   \bibfield  {author} {\bibinfo {author} {\bibfnamefont {S.}~\bibnamefont
   {Tibaldi}}, \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Vodola}},
-  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Notarnicola}},\ and\
-  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Montangero}},\ }\href
+  \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont {Tignone}},\ and\ \bibinfo
+  {author} {\bibfnamefont {E.}~\bibnamefont {Ercolessi}},\ }\href
   {https://doi.org/10.1109/tqe.2023.3325167} {\bibfield  {journal} {\bibinfo
-  {journal} {Quantum Science and Technology}\ }\textbf {\bibinfo {volume}
-  {8}},\ \bibinfo {pages} {035022} (\bibinfo {year} {2023})}\BibitemShut
+  {journal} {IEEE Transactions on Quantum Engineering}\ }\textbf {\bibinfo
+  {volume} {4}},\ \bibinfo {pages} {1} (\bibinfo {year} {2023})}\BibitemShut
   {NoStop}%
 \bibitem [{\citenamefont {Shaydulin}\ and\ \citenamefont
   {Wild}(2023)}]{shaydulin2023}%
@@ -569,12 +569,12 @@
   pp.\ \bibinfo {pages} {214--223}\BibitemShut {NoStop}%
 \bibitem [{\citenamefont {Frogner}\ \emph {et~al.}(2015)\citenamefont
   {Frogner}, \citenamefont {Zhang}, \citenamefont {Mobahi}, \citenamefont
-  {Arber},\ and\ \citenamefont {Poggio}}]{frogner2015}%
+  {Araya},\ and\ \citenamefont {Poggio}}]{frogner2015}%
   \BibitemOpen
   \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.}~\bibnamefont
   {Frogner}}, \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont {Zhang}},
   \bibinfo {author} {\bibfnamefont {H.}~\bibnamefont {Mobahi}}, \bibinfo
-  {author} {\bibfnamefont {M.}~\bibnamefont {Arber}},\ and\ \bibinfo {author}
+  {author} {\bibfnamefont {M.}~\bibnamefont {Araya}},\ and\ \bibinfo {author}
   {\bibfnamefont {T.}~\bibnamefont {Poggio}},\ }in\ \href@noop {} {\emph
   {\bibinfo {booktitle} {Advances in Neural Information Processing Systems}}},\
   Vol.~\bibinfo {volume} {28}\ (\bibinfo {year} {2015})\BibitemShut {NoStop}%
@@ -718,18 +718,21 @@
   }\href {https://doi.org/10.1093/comjnl/7.4.308} {\bibfield  {journal}
   {\bibinfo  {journal} {The Computer Journal}\ }\textbf {\bibinfo {volume}
   {7}},\ \bibinfo {pages} {308} (\bibinfo {year} {1965})}\BibitemShut {NoStop}%
-\bibitem [{\citenamefont {Schuld}\ \emph {et~al.}(2019)\citenamefont {Schuld},
-  \citenamefont {Bergholm}, \citenamefont {Gogolin}, \citenamefont {Izaac},\
-  and\ \citenamefont {Killoran}}]{schuld2019}%
+\bibitem [{\citenamefont {Verdon}\ \emph {et~al.}(2019)\citenamefont {Verdon},
+  \citenamefont {Broughton}, \citenamefont {McClean}, \citenamefont {Sung},
+  \citenamefont {Babbush}, \citenamefont {Jiang}, \citenamefont {Neven},\ and\
+  \citenamefont {Maslov}}]{verdon2019}%
   \BibitemOpen
-  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
-  {Schuld}}, \bibinfo {author} {\bibfnamefont {V.}~\bibnamefont {Bergholm}},
-  \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont {Gogolin}}, \bibinfo
-  {author} {\bibfnamefont {J.}~\bibnamefont {Izaac}},\ and\ \bibinfo {author}
-  {\bibfnamefont {N.}~\bibnamefont {Killoran}},\ }\href
-  {https://doi.org/10.1103/physreva.99.032331} {\bibfield  {journal} {\bibinfo
-  {journal} {Physical Review A}\ }\textbf {\bibinfo {volume} {99}},\ \bibinfo
-  {pages} {032331} (\bibinfo {year} {2019})}\BibitemShut {NoStop}%
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Verdon}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Broughton}},
+  \bibinfo {author} {\bibfnamefont {J.~R.}\ \bibnamefont {McClean}}, \bibinfo
+  {author} {\bibfnamefont {K.~J.}\ \bibnamefont {Sung}}, \bibinfo {author}
+  {\bibfnamefont {R.}~\bibnamefont {Babbush}}, \bibinfo {author} {\bibfnamefont
+  {Z.}~\bibnamefont {Jiang}}, \bibinfo {author} {\bibfnamefont
+  {H.}~\bibnamefont {Neven}},\ and\ \bibinfo {author} {\bibfnamefont
+  {D.}~\bibnamefont {Maslov}},\ }\href@noop {} {\bibfield  {journal} {\bibinfo
+  {journal} {arXiv preprint arXiv:1907.05415}\ } (\bibinfo {year}
+  {2019})}\BibitemShut {NoStop}%
 \bibitem [{\citenamefont {Bartlett}\ \emph {et~al.}(2017)\citenamefont
   {Bartlett}, \citenamefont {Foster},\ and\ \citenamefont
   {Telgarsky}}]{bartlett2017}%
@@ -786,18 +789,6 @@
   {Bates}},\ }\bibfield  {journal} {\bibinfo  {journal} {arXiv preprint
   arXiv:2107.07511}\ }\href {https://doi.org/10.48550/arxiv.2107.07511}
   {10.48550/arxiv.2107.07511} (\bibinfo {year} {2021})\BibitemShut {NoStop}%
-\bibitem [{\citenamefont {Larocca}\ \emph {et~al.}(2023)\citenamefont
-  {Larocca}, \citenamefont {Ju}, \citenamefont {Garc{\'i}a-Mart{\'i}n},
-  \citenamefont {Coles},\ and\ \citenamefont {Cerezo}}]{larocca2023}%
-  \BibitemOpen
-  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
-  {Larocca}}, \bibinfo {author} {\bibfnamefont {N.}~\bibnamefont {Ju}},
-  \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Garc{\'i}a-Mart{\'i}n}},
-  \bibinfo {author} {\bibfnamefont {P.~J.}\ \bibnamefont {Coles}},\ and\
-  \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Cerezo}},\ }\href
-  {https://doi.org/10.1038/s43588-023-00542-x} {\bibfield  {journal} {\bibinfo
-  {journal} {Nature Computational Science}\ }\textbf {\bibinfo {volume} {3}},\
-  \bibinfo {pages} {542} (\bibinfo {year} {2023})}\BibitemShut {NoStop}%
 \bibitem [{\citenamefont {Erd\H{o}s}\ and\ \citenamefont
   {R{\'e}nyi}(1959)}]{erdos1959}%
   \BibitemOpen

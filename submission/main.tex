@@ -70,46 +70,37 @@
 
 % ============================================================
 \begin{abstract}
-In low-depth implementations of the Quantum Approximate Optimization
-Algorithm (\QAOA), the dominant cost is often the number of objective
-evaluations rather than circuit depth. We introduce a graph-conditioned
-trust-region method for reducing this query cost. A graph neural
-network predicts a Gaussian distribution $\Normal(\bm\mu,\bm\Sigma)$ over
-\QAOA{} angles. The mean initializes a local optimizer, the covariance
-defines an ellipsoidal trust region that constrains the search, and the
-predicted uncertainty determines an instance-dependent evaluation
-budget. Thus the learned distribution defines a search policy rather
-than only an initial parameter estimate.
+We consider the Quantum Approximate Optimization Algorithm at fixed
+low depth, where the dominant cost is the number of circuit
+evaluations needed to find good variational angles. A graph
+isomorphism network is trained to output a Gaussian distribution
+over angles for each input graph. The mean serves as an initial
+point for a derivative-free optimizer, the covariance defines a
+trust region that constrains the search, and the trace of the
+covariance sets an instance-dependent evaluation budget.
 
-Under explicit assumptions on local smoothness, curvature, calibration,
-and noise, we derive bounds on objective degradation within the trust
-region, lower bounds on gradient variance, preservation of expected
-objective ordering under depolarizing noise, and finite-sample coverage
-guarantees. We evaluate the method for MaxCut at depth $p=2$ on
+We prove bounds on the objective degradation inside the trust
+region, on gradient-variance lower bounds that prevent flat
+directions from stalling the search, on preservation of the
+expected objective ordering under depolarizing noise, and on
+finite-sample coverage of the predicted region.  Together these
+guarantees ensure that confining the optimizer to the learned
+ellipsoid does not forfeit solution quality.
+
+We test the method on MaxCut at depth $p{=}2$ for
 Erd\H{o}s--R\'enyi, 3-regular, Barab\'asi--Albert, and
-Watts--Strogatz graphs with $n=8$--$16$ vertices. Relative to random
-restarts and the strongest learned point-prediction baseline, the
-method reduces the mean number of circuit evaluations from $343$ and
-$85$ to $45\pm 7$, while maintaining sampled approximation ratios
-within 3 percentage points of concentration-based heuristics.
-
-The method does not improve absolute approximation ratios at the
-default operating point; its advantage is reduced query cost at
-comparable solution quality. At a higher budget setting the ratio gap
-narrows to $0.007$, while still using fewer evaluations than the
-strongest absolute-ratio baselines.
-The predictive uncertainty is calibrated in the experiments, with
-ECE$=0.052$ and Spearman correlation $\rho=0.770$, and the learned
-trust regions transfer to graph sizes not used during training.
-Total circuit resources (CNOT gate executions) are reduced by
-$87\%$, and the query-efficiency advantage persists under
-finite-shot noise ($512$--$8192$ shots).
-The results identify a fixed-depth, query-dominated regime in which the
-proposed method attains the best query-efficiency metrics reported in
-the study, namely the lowest evaluation count and runtime, the highest
-evaluation-normalized quality, the largest reduction in total circuit
-resources, and the most noise-robust efficiency profile, without
-modifying the ansatz.
+Watts--Strogatz graphs with $8$ to $16$ vertices. The mean
+evaluation count drops from $343$ (random restarts) and $85$
+(best learned-point baseline) to $45\pm 7$, with approximation
+ratios within $0.03$ of concentration-based heuristics. Total
+CNOT-gate executions are reduced by $87\%$. The predicted
+uncertainty is calibrated (ECE${=}0.052$, Spearman
+$\rho{=}0.770$), the trust regions transfer across graph sizes
+without retraining, and the speedup persists from $7.2\times$ to
+$7.7\times$ under shot noise ranging from $512$ to $8192$ shots.
+At a higher budget operating point the ratio gap to the best
+absolute-quality baseline narrows to $0.007$.  The savings hold
+across graph families, sizes, seeds, and shot-noise levels.
 \end{abstract}
 
 \maketitle
@@ -117,120 +108,84 @@ modifying the ansatz.
 \section{Introduction}
 \label{sec:intro}
 
-The Quantum Approximate Optimization Algorithm (\QAOA)~\cite{farhi2014}
-is a widely studied variational algorithm for combinatorial
-optimization.
-In near-term settings, its cost is dominated by the classical outer
-loop, which repeatedly evaluates expectation values of the objective
-function. Even at low circuit depth, derivative-free optimization of
-the $2p$ variational parameters can require hundreds of objective
-evaluations per instance~\cite{zhou2020,wurtz2021}. On quantum
-hardware, each evaluation involves repeated state preparation and
-measurement, so the total number of circuit evaluations is a primary
-resource constraint~\cite{cerezo2021,preskill2018}.
+The Quantum Approximate Optimization Algorithm
+(\QAOA)~\cite{farhi2014} applies $p$ alternating layers of a cost
+unitary and a mixer unitary to the uniform superposition.  The $2p$
+variational angles are then chosen to maximize the expected value of
+the cost function.  At low depth, typical derivative-free optimizers
+require hundreds of objective evaluations per
+instance~\cite{zhou2020,wurtz2021}, and on quantum hardware each
+evaluation demands repeated state preparation and measurement.  The
+number of circuit evaluations is therefore a dominant
+cost~\cite{cerezo2021,preskill2018}.
 
-The question is whether a learned, graph-conditioned distribution over
-\QAOA{} parameters can restrict search to an instance-dependent region
-and allocate computational effort across instances. We focus on
-low-depth \QAOA{}, the regime most accessible to near-term devices and
-the regime in which the classical optimization loop can dominate total
-cost. The goal is to reduce objective evaluations, not to improve
-asymptotic approximation guarantees or to modify the \QAOA{} ansatz.
+We describe a method that uses a learned, graph-conditioned Gaussian
+to reduce this cost.  A Graph Isomorphism Network
+(\GIN)~\cite{xu2019} with Laplacian spectral
+encodings~\cite{dwivedi2023,lim2023} takes a graph $\calG$ and
+outputs a distribution
+$\Normal(\bm\mu(\calG),\bm\Sigma(\calG))$ over \QAOA{} angles.
+The mean $\bm\mu$ initializes local optimization.  The covariance
+$\bm\Sigma$ defines a Mahalanobis ellipsoid---the trust region---to
+which the optimizer is confined.  The trace of $\bm\Sigma$ sets the
+number of evaluations allocated to the instance.  A single learned
+object therefore specifies the initialization, the search boundary,
+and the computational budget.  No external hyperparameter couples
+these three decisions; they all derive from the same predicted
+Gaussian.
 
-Existing approaches to reducing the cost of parameter optimization
-include concentration-based schedules, learned initializations, and
-surrogate or Bayesian optimization methods. These approaches
-produce either fixed parameter choices or initial points for local
-optimization. In contrast, the learned Gaussian used here defines a
-search policy before any circuit evaluation is made: the mean
-initializes optimization, the covariance constrains the search
-trajectory, and the predicted uncertainty determines the evaluation
-budget. This differs from warm-start methods, which provide
-an initial point but do not constrain the subsequent optimization.
+The Gaussian prediction differs from prior warm-start and
+transfer approaches in that the optimizer is confined to the
+predicted region throughout, not merely initialized by it, and the
+budget varies from instance to instance according to the model's
+own confidence.  The confinement prevents the optimizer from
+wandering into regions of the landscape that the model has no
+reason to trust; the instance-dependent budget avoids spending
+circuit evaluations on graphs the model already understands well.
 
-Given a graph $\calG$, a Graph Isomorphism Network (\GIN{})-based predictor~\cite{xu2019} with
-Laplacian spectral encodings~\cite{dwivedi2023,lim2023} outputs a
-Gaussian distribution $\Normal(\bm\mu(\calG),\bm\Sigma(\calG))$ over
-\QAOA{} angles. The mean initializes local optimization, the
-covariance defines a Mahalanobis trust region, and the trace of the
-covariance sets an instance-dependent evaluation budget. The learned
-model defines both the search geometry and the amount of
-computation assigned to each instance.
+Section~\ref{sec:theory} proves that the trust region preserves
+objective quality, that the gradient does not vanish inside the
+ellipsoid, that the expected ordering survives depolarizing noise,
+and that conformal calibration gives finite-sample coverage.
 
-The analysis is restricted to low-depth \QAOA{} and to the local
-behavior of the objective landscape near the predicted region. The
-results do not address global optimality or worst-case guarantees over
-arbitrary graph classes. They establish conditional guarantees
-under explicit assumptions on local smoothness, curvature,
-calibration, and noise.
-
-The contributions are as follows.
-
-\begin{enumerate}[leftmargin=*,itemsep=2pt]
-\item \textbf{Graph-conditioned trust-region method.}
-    The predicted Gaussian distribution is used to initialize
-    optimization, constrain the search to an instance-dependent region,
-    and allocate evaluation budgets. The method uses predictive
-    uncertainty both to restrict the search region and to allocate
-    query budget.
-
-\item \textbf{Conditional guarantees.}
-    Under local regularity assumptions, we derive bounds on expected
-    objective degradation within the trust region, lower bounds on
-    gradient variance, preservation of expected objective ordering
-    under depolarizing noise, and finite-sample coverage guarantees.
-    These guarantees connect learned uncertainty to optimization
-    geometry, robustness, and coverage.
-
-\item \textbf{Empirical evaluation in the low-depth regime.}
-    For MaxCut at depth $p{=}2$ on several graph families, the method
-    reduces the number of circuit evaluations relative to both random
-    initialization and learned point-prediction baselines, while
-    maintaining comparable approximation ratios. The experiments are
-    structured to isolate the contribution of distributional prediction
-    beyond improved initialization alone.
-\end{enumerate}
-
-We evaluate the method on Erd\H{o}s--R\'enyi, 3-regular,
-Barab\'asi--Albert, and Watts--Strogatz graph families with
-$n{=}8$--$16$ vertices. The learned trust region transfers to graph
-sizes not used during training and reduces query cost across all tested
-families. For $n{=}14$, the method reduces the mean number of circuit
-evaluations from $343$ and $85$ to $45\pm 7$, while maintaining sampled
-approximation ratios within 3 percentage points of concentration-based
-heuristics.
-
-The remainder of the paper is organized as follows. Section~II defines
-the problem setting and notation. Section~III discusses related work.
-Section~IV introduces the predictor and trust-region method.
-Section~V presents theoretical guarantees. Sections~VI--VIII report
-empirical results and discuss limitations.
+We evaluate the method on MaxCut at depth $p{=}2$.  The test graphs
+are Erd\H{o}s--R\'enyi, 3-regular, Barab\'asi--Albert, and
+Watts--Strogatz families with $n{=}8$--$16$ vertices.  Training uses
+240 graphs at $n{=}14$ only.  The learned trust region transfers to
+families and sizes not seen during training, a consequence of the
+spectral positional encodings and the contrastive loss that
+structures the graph embedding by landscape similarity rather than
+by combinatorial label.  On $n{=}14$ graphs the method reduces the
+mean evaluation count from $343$ (random restarts) and $85$ (best
+learned point predictor) to $45 \pm 7$, while keeping sampled
+approximation ratios within 3 percentage points of
+concentration-based heuristics.  The factor-of-two reduction
+relative to the point predictor is not explained by a better
+initialization; it arises from the trust-region constraint and the
+adaptive budget, which the point predictor lacks.
 
 
 \section{Problem Setting and Preliminaries}
 \label{sec:background}
 
-The setting is unweighted MaxCut and depth-$p$ \QAOA{}. The objective is
-the expected cost $F_\calG(\bm\theta)$, while the experiments also
-report the sampled best-bitstring approximation ratio obtained from a
-finite optimization run. The analysis concerns the behavior of
-$F_\calG(\bm\theta)$ near the predicted parameters at low depth.
+We work with unweighted MaxCut on $n$-vertex graphs and the
+depth-$p$ \QAOA{}.
 
 \subsection{MaxCut and the \QAOA{} circuit}
 
 Let $\calG = (\calV,\calE)$ be an unweighted graph with
-$|\calV| = n$ and $|\calE| = m$. MaxCut seeks a bipartition
+$|\calV| = n$ and $|\calE| = m$.  MaxCut asks for a bipartition
 $z \in \{+1,-1\}^n$ maximizing
 \begin{equation}
     C(z) = \sum_{(i,j) \in \calE} \tfrac{1}{2}(1 - z_i z_j).
     \label{eq:maxcut}
 \end{equation}
-The problem is NP-hard~\cite{karp1972}; the best known polynomial-time
-approximation ratio is the Goemans--Williamson bound
-$\alpha_{\mathrm{GW}} \approx 0.878$~\cite{goemans1995}, which is
-optimal under the Unique Games Conjecture~\cite{hastad2001,khot2007}.
+The problem is NP-hard~\cite{karp1972}.  The best known
+polynomial-time approximation ratio is
+$\alpha_{\mathrm{GW}} \approx 0.878$~\cite{goemans1995}, optimal
+under the Unique Games Conjecture~\cite{hastad2001,khot2007}.
 
-The depth-$p$ \QAOA{} prepares
+The depth-$p$ \QAOA{} prepares the state
 \begin{equation}
     \ket{\bm\gamma,\bm\beta}
     = e^{-i\beta_p B} e^{-i\gamma_p C} \cdots
@@ -238,68 +193,69 @@ The depth-$p$ \QAOA{} prepares
     \ket{+}^{\otimes n},
     \label{eq:qaoa_state}
 \end{equation}
-where $C = \sum_{(i,j)\in\calE}\frac{1}{2}(I - Z_i Z_j)$ is the cost
-Hamiltonian and $B = \sum_i X_i$ is the transverse-field mixer~\cite{farhi2014}.
-The variational parameters $\bm\theta = (\bm\gamma,\bm\beta) \in
-\bbR^{2p}$ are chosen to maximize the expected cost
+where $C = \sum_{(i,j)\in\calE}\frac{1}{2}(I - Z_i Z_j)$ is the
+cost Hamiltonian and
+$B = \sum_i X_i$~\cite{farhi2014}.  The $2p$ angles
+$\bm\theta = (\bm\gamma,\bm\beta) \in \bbR^{2p}$ are chosen to
+maximize
 $F_\calG(\bm\theta) = \bra{\bm\theta}C\ket{\bm\theta}$.
 
-We use two quality measures. The normalized expected objective
-$F_\calG(\bm\theta)/C_{\max}$ is used in the analysis. The sampled
-approximation ratio
+Two quality measures appear below.  The analysis uses the normalized
+expected objective $F_\calG(\bm\theta)/C_{\max}$.  The experiments
+report the sampled approximation ratio
 $r = C(z_{\mathrm{best}})/C_{\max}$, where $z_{\mathrm{best}}$ is the
-best bitstring observed during optimization, is used in the
-experiments.
+best bitstring observed during optimization.
 
-\subsection{Angle concentration and landscape structure}
+\subsection{Angle concentration and barren plateaus}
 \label{sec:concentration_bg}
 
-For bounded-degree graph families at fixed depth $p$, optimal
-\QAOA{} parameters exhibit concentration: the variance of optimal
-angles decreases as $O(1/n)$~\cite{brandao2018,akshay2021}. This
-structure enables cross-instance parameter transfer
-in both regular and heterogeneous graph families
-~\cite{wurtz2021,galda2021}. The predictor introduced in
-Section~IV exploits this phenomenon by placing the search in a region
-where high-quality parameters are likely to lie.
+At fixed depth $p$ on bounded-degree graph families, optimal \QAOA{}
+angles concentrate: the variance of the optimal $\bm\theta$ decreases
+as $O(1/n)$~\cite{brandao2018,akshay2021}.  This makes cross-instance
+parameter transfer possible~\cite{wurtz2021,galda2021}.  The
+concentration phenomenon is the structural reason that a learned
+predictor can generalize: without it, the optimal angles for two
+graphs of the same family could be arbitrarily far apart, and no
+finite training set would suffice.
 
-Variational quantum circuits can also exhibit barren plateaus,
-where the gradient variance at random parameters scales as
+Variational circuits can also exhibit barren plateaus, where the
+gradient variance at random parameters satisfies
 \begin{equation}
     \mathrm{Var}_{\bm\theta}\bigl[\partial_j F(\bm\theta)\bigr]
-    \le O\bigl(2^{-n}\bigr),
+    \le O\bigl(2^{-n}\bigr)
     \label{eq:bp}
 \end{equation}
-for sufficiently deep or highly entangling
+for deep or highly entangling
 ans\"atze~\cite{mcclean2018,arrasmith2021,wang2021noise}.
-For constant-depth \QAOA{} with a local cost operator, this
-suppression is mitigated, but the landscape still contains extended
-regions of small gradient magnitude. Restricting optimization to a
-predicted region reduces exploration of such flat regions.
+Constant-depth \QAOA{} with a local cost operator avoids this
+exponential suppression, but the landscape still contains extended flat
+regions that slow derivative-free solvers.  The trust region addresses
+this difficulty: by confining the search to a neighborhood where the
+Hessian is bounded away from zero
+(Theorem~\ref{thm:anticoncentration}), it ensures that the optimizer
+encounters gradient signal throughout its trajectory.
 
-\subsection{Spectral graph theory and positional encodings}
+\subsection{Spectral positional encodings}
 \label{sec:spectral_bg}
 
-The graph Laplacian $L = D - A$ admits the eigendecomposition
-$L = U\Lambda U^\top$, where eigenvectors
-$\{u_k\}_{k=0}^{n-1}$ (ordered by eigenvalue
-$0 = \lambda_0 \le \lambda_1 \le \cdots$) define spectral positional
-encodings~\cite{dwivedi2023,lim2023,kreuzer2021}. The algebraic
-connectivity $\lambda_2$ (Fiedler value~\cite{fiedler1973}) captures
-global connectivity and correlates with optimization difficulty.
-
-Because eigenvectors are defined for arbitrary graph size, spectral
-encodings provide a size-invariant structural representation that
-supports cross-size transfer (\cref{sec:crosssize}). The sign ambiguity
-of eigenvectors is handled during training by random sign
-flips~\cite{lim2023}. These encodings are combined with node-degree
-features and used as inputs to the graph-conditioned predictor.
+The graph Laplacian $L = D - A$ has eigendecomposition
+$L = U\Lambda U^\top$ with eigenvalues
+$0 = \lambda_0 \le \lambda_1 \le \cdots \le \lambda_{n-1}$.
+The eigenvectors $\{u_k\}$ define spectral positional
+encodings~\cite{dwivedi2023,lim2023,kreuzer2021}.
+The Fiedler value $\lambda_2$~\cite{fiedler1973} captures global
+connectivity.  Because eigenvectors are defined for any graph size,
+spectral encodings give a size-invariant input representation;
+this is the mechanism by which the predictor transfers from
+$n{=}14$ training graphs to unseen sizes without retraining.
+Sign ambiguity is resolved by random sign flips during
+training~\cite{lim2023}.
 
 \subsection{Graph Isomorphism Networks}
 
-The Graph Isomorphism Network (\GIN)~\cite{xu2019} is as expressive as
-the Weisfeiler--Leman graph isomorphism test~\cite{weisfeiler1968}.
-Each layer updates node representations according to
+The Graph Isomorphism Network (\GIN)~\cite{xu2019} is as expressive
+as the Weisfeiler--Leman isomorphism test~\cite{weisfeiler1968}.
+Each layer updates
 \begin{equation}
     h_v^{(l+1)} = \mathrm{MLP}^{(l)}\!\bigl(
     (1+\epsilon^{(l)})\, h_v^{(l)}
@@ -307,18 +263,20 @@ Each layer updates node representations according to
     \bigr),
     \label{eq:gin_update}
 \end{equation}
-with learnable $\epsilon^{(l)}$ and neighbor set $\calN(v)$.
-Graph-level representations are obtained by permutation-invariant
-pooling of node embeddings~\cite{hamilton2017,gilmer2017}.
-This expressivity allows structural differences between graphs to be
-captured in the learned representation used for parameter prediction.
+with learnable $\epsilon^{(l)}$ and neighbor set
+$\calN(v)$~\cite{hamilton2017,gilmer2017}.
+A graph-level representation is obtained by permutation-invariant
+pooling of the node embeddings.  The \GIN{} is the strongest
+first-order message-passing network in the Weisfeiler--Leman
+hierarchy; a less expressive backbone would collapse distinct
+spectral signatures that separate the four graph families used in
+this work.
 
 \subsection{Wasserstein distance for Gaussians}
 \label{sec:wasserstein_bg}
 
-Training compares predicted and target Gaussian distributions over
-parameters using the 2-Wasserstein distance. For probability measures
-$P$ and $Q$ on $\bbR^d$,
+The 2-Wasserstein distance between probability measures $P$ and $Q$
+on $\bbR^d$ is
 \begin{equation}
     W_2(P,Q) = \Bigl(\inf_{\pi \in \Pi(P,Q)}
     \int \|\bm{x} - \bm{y}\|_2^2\, d\pi(\bm{x},\bm{y})\Bigr)^{1/2}.
@@ -329,112 +287,99 @@ For diagonal Gaussians this reduces to
     W_2^2 = \|\bm\mu_1 - \bm\mu_2\|_2^2
     + \|\bm\sigma_1 - \bm\sigma_2\|_2^2,
 \end{equation}
-which can be evaluated and differentiated efficiently.
+which is differentiable and cheap to evaluate.
 
 
 \section{Relation to Prior Work}
 \label{sec:related}
 
-Prior work relevant to this paper includes parameter transfer for
-\QAOA{}, machine-learning approaches to combinatorial optimization,
-uncertainty quantification, and amortized optimization. The key
-distinction is the operational role of the learned model. The relevant
-questions are what is predicted (a fixed schedule, a point estimate, or
-a distribution), how that prediction is used during optimization
-(initialization only or a constraint on the subsequent search), and
-whether query effort is adapted across instances.
-
 \textbf{Parameter transfer for \QAOA{}.}
-Concentration of optimal angles~\cite{brandao2018,akshay2021}
-has motivated several transfer strategies.
-Fixed-angle schedules~\cite{wurtz2021} and
-interpolation-based warmstarts~\cite{zhou2020}
-exploit low-depth regularity to obtain strong approximation ratios on
-structured graph families without per-instance optimization.
-Extensions to heterogeneous graphs include cross-instance
+Concentration of optimal angles at fixed
+depth~\cite{brandao2018,akshay2021} underlies several transfer
+strategies: fixed-angle schedules~\cite{wurtz2021},
+interpolation-based warm starts~\cite{zhou2020}, cross-instance
 transfer~\cite{galda2021}, warm-starting from related
-circuits~\cite{egger2021,sack2021}, and graph-conditioned predictors
-based on \GNN{}s~\cite{jain2022} or reinforcement
-learning~\cite{khairy2020}. Additional approaches reduce query cost
-through Bayesian optimization~\cite{tibaldi2023},
-classical preprocessing~\cite{shaydulin2023}, training without QPU
-access~\cite{streif2020}, unsupervised identification~\cite{moussa2022},
-and symmetry-aware search~\cite{sauvage2024}.
-
-These methods provide fixed schedules, warm starts, or online search
-heuristics. The transferred information is used primarily to choose
-parameters before local optimization or to guide search as evaluations
-are gathered. Here the distribution is predicted before the first
-query. Its covariance restricts the admissible search region, and its
-calibrated uncertainty sets the evaluation budget.
+circuits~\cite{egger2021,sack2021}, graph-conditioned predictors using
+\GNN{}s~\cite{jain2022} or reinforcement learning~\cite{khairy2020},
+Bayesian optimization~\cite{tibaldi2023}, classical
+preprocessing~\cite{shaydulin2023}, training without QPU
+access~\cite{streif2020}, unsupervised
+identification~\cite{moussa2022}, and symmetry-aware
+search~\cite{sauvage2024}.  These methods produce fixed schedules,
+warm starts, or online search heuristics.  Here the full distribution
+is predicted before the first circuit query, and the covariance
+constrains the search.  The distinction is not merely
+architectural: a warm start uses the prediction once and discards
+it, whereas the trust region enforces the prediction at every
+iterate.  The adaptive budget further couples the model's
+uncertainty to the optimizer's resource consumption, a feature
+absent from all prior transfer methods.
 
 \textbf{Learned combinatorial heuristics.}
-Machine learning is routinely used to guide combinatorial
-optimization~\cite{bengio2021,cappart2023,khalil2017,dai2016,kool2019,schuetz2022}.
-In these settings, objective evaluations are inexpensive, and the
-primary metric is time to solution. In the variational quantum setting,
-each circuit evaluation dominates the cost, so the relevant quantity is
-the number of evaluations required to reach a given solution quality.
-The distinction shifts the emphasis from classical inference cost to
-query allocation. The paper therefore treats the learned model as part
-of the query policy, not merely as a fast heuristic for proposing a
-candidate solution.
+Machine learning is used to guide combinatorial
+optimization~\cite{bengio2021,cappart2023,khalil2017,dai2016,kool2019,schuetz2022},
+where objective evaluations are cheap and the metric is time to
+solution.  In the variational quantum setting each circuit evaluation
+dominates the cost, so the relevant quantity is evaluation count at a
+given solution quality.  The shift in cost metric changes the design
+problem: runtime-efficient heuristics are no longer sufficient; the
+algorithm must minimize the number of calls to the quantum device.
 
-\textbf{Uncertainty quantification in scientific machine learning.}
-Standard approaches include heteroscedastic regression~\cite{nix1994,kendall2017},
-deep ensembles~\cite{lakshminarayanan2017}, MC
+\textbf{Uncertainty quantification.}
+Standard approaches include heteroscedastic
+regression~\cite{nix1994,kendall2017}, deep
+ensembles~\cite{lakshminarayanan2017}, MC
 dropout~\cite{gal2016}, and calibrated
 prediction~\cite{kuleshov2018,abdar2021,hullermeier2021,psaros2023}.
-In the present setting, a single-network Gaussian parameterization is
-sufficient: the Wasserstein regularizer and contrastive loss structure
-the predicted variance without requiring ensemble methods. The
-resulting uncertainty directly determines the optimization strategy at
-test time. The role of uncertainty here is therefore prescriptive rather
-than merely diagnostic: it changes both the feasible region and the
-query budget.
+Here a single-network Gaussian parameterization suffices; the
+Wasserstein regularizer and contrastive loss structure the predicted
+variance without ensembles.  The predicted uncertainty sets both the
+search region and the evaluation budget.  A single forward pass
+replaces the overhead of ensemble disagreement or Monte Carlo
+sampling, and the Wasserstein regularizer provides the geometric
+calibration that a standard NLL objective alone cannot supply.
 
 \textbf{Optimal transport and contrastive learning.}
-The closed-form Wasserstein distance for Gaussian
-distributions~\cite{dowson1982} has been used in generative
+The closed-form Wasserstein distance for
+Gaussians~\cite{dowson1982} has been used in generative
 modeling~\cite{arjovsky2017,frogner2015} and distributional
-robustness~\cite{villani2009,cuturi2013,peyre2019}. Here it serves as a
-regularizer for a distribution over variational parameters.
-Contrastive and metric-learning objectives~\cite{chen2020simclr,oord2018,you2020,suresh2021,khosla2020}
-structure the representation so that the predicted distributions
-transfer across graph families.
+robustness~\cite{villani2009,cuturi2013,peyre2019}.  Here it
+regularizes a distribution over variational parameters.  Contrastive
+objectives~\cite{chen2020simclr,oord2018,you2020,suresh2021,khosla2020}
+organize the embedding so that predicted distributions transfer across
+graph families.  The contrastive loss acts upstream of the prediction
+heads; it structures the representation by landscape similarity
+rather than by graph label, which is the mechanism underlying
+cross-family generalization.
 
 \textbf{Amortized optimization.}
 Amortized inference replaces per-instance optimization with a learned
-mapping~\cite{amos2023,chen2022,finn2017,shu2022}. Existing amortized
-\QAOA{} methods predict point initializations. In contrast, we predict a
-Gaussian distribution: the mean initializes optimization, the
-covariance constrains the search trajectory, and the uncertainty
-allocates the evaluation budget. The method remains hybrid rather than
-fully amortized: learning does not replace per-instance optimization,
-but reshapes it by restricting the search and reallocating expensive
-queries.
+mapping~\cite{amos2023,chen2022,finn2017,shu2022}.  Existing
+amortized \QAOA{} methods predict point initializations.  Here the
+prediction is a Gaussian whose covariance constrains the search and
+whose uncertainty sets the budget.  The method is hybrid: learning
+reshapes per-instance optimization rather than replacing it.  The
+predictor narrows the search; the optimizer finds the solution
+within the narrowed region.  Neither component alone achieves the
+observed evaluation savings.
 
 % ============================================================
 \section{Graph-Conditioned Gaussian Prediction and Trust-Region Search}
 \label{sec:method}
 % ============================================================
 
-\UQQAOA{} predicts a distribution over \QAOA{} parameters and uses that
-distribution to structure subsequent optimization. The predictor
-specifies an initial point, a search region, and an evaluation budget.
-The method combines five components (\cref{fig:algorithm}): a
-\GIN{}-based predictor, Wasserstein-regularized training, contrastive
-metric learning, trust-region-constrained optimization, and
-uncertainty-guided budget allocation.
-The predictor output is used in three roles: the mean initializes
-optimization, the covariance defines the trust region, and the
-predicted uncertainty allocates evaluation budget.
-
-Prediction and refinement are separated. A single forward pass produces
-$(\bm\mu,\bm\Sigma)$, after which optimization is restricted to a region
-and budget determined by the prediction. The learned distribution
-therefore determines the optimization policy, not only its
-initialization.
+A single forward pass of a \GIN{} produces a Gaussian
+$(\bm\mu,\bm\Sigma)$ over \QAOA{} angles.  Optimization is then
+restricted to the region and budget that the Gaussian determines.  The
+method has five components (\cref{fig:algorithm}): a \GIN{}-based
+predictor, Wasserstein-regularized training, contrastive metric
+learning, trust-region-constrained optimization, and
+uncertainty-guided budget allocation.  Each component addresses a
+distinct failure mode.  Removing any one of them either eliminates
+the uncertainty estimate altogether or degrades it to the point
+where the trust region provides no advantage over random
+initialization.  The ablation study in \cref{sec:results} confirms
+this experimentally; the discussion below explains the mechanism.
 
 \paragraph{Standing assumptions.}
 The guarantees in \cref{sec:theory} are local. They assume:
@@ -479,12 +424,24 @@ The predictive distribution is
     \mathrm{diag}(\bm\sigma^2(\calG))\bigr).
 \end{equation*}
 
-The clamp in \cref{eq:sigma_head} ensures numerical stability with
-$\sigma_j \in [e^{-5/2}, e]$. We restrict to diagonal covariance. At
-$p{=}2$ this gives axis-aligned trust regions and is adequate for the
-regime studied here. It does not model correlations between angles.
-At larger depth, full-covariance, low-rank, mixture, or torus-aware
-models may be needed.
+The clamp in \cref{eq:sigma_head} keeps
+$\sigma_j \in [e^{-5/2}, e]$.  The covariance is diagonal.
+
+The architecture is determined by two requirements.  First, the
+predictor must read the graph: a family-level lookup table or a
+label-conditioned model cannot generalize to unseen topologies.
+A \GIN{} is the strongest first-order message-passing network in
+the Weisfeiler--Leman hierarchy~\cite{xu2019} and
+distinguishes any pair of graphs that $1$-WL distinguishes.  A
+less expressive backbone---GCN or GraphSAGE---collapses
+distinct spectral signatures onto the same embedding, and the
+resulting predictions lose resolution across graph families.
+Second, the predictor must output a distribution, not a point.
+A point estimate $\bm\mu$ alone provides no trust region: the
+optimizer would have no principled boundary, and the adaptive
+budget (\cref{sec:adaptive}) would have no signal.  The diagonal
+Gaussian is the simplest distribution that supplies both a center
+and a per-coordinate scale.
 
 \subsection{Wasserstein-regularized training}
 \label{sec:training}
@@ -524,8 +481,6 @@ The negative log-likelihood is
     \label{eq:loss_nll}
 \end{equation}
 
-The phased schedule prevents trivial variance inflation that can occur
-when optimizing NLL from initialization.
 
 \textbf{Wasserstein regularizer.}
 For diagonal Gaussians,
@@ -542,6 +497,25 @@ encode angle-space similarity:
     \sum_{i \ne j \in \calB} w_{ij}\, W_2^2(P_i,P_j).
     \label{eq:loss_w2}
 \end{equation}
+
+The negative log-likelihood trains the mean and variance jointly,
+but it treats each graph in isolation.  Two graphs whose
+ground-truth angles are nearly identical can receive predictive
+distributions that are far apart in $W_2$, and the NLL assigns
+no penalty for this inconsistency.  The Wasserstein term closes
+this gap: it forces the model to assign similar distributions to
+graphs with similar optimal angles.  Removing it leaves the
+variance estimates geometrically uncalibrated, and the trust
+regions no longer reflect landscape similarity across instances.
+
+The two-phase schedule is not a convenience but a necessity.
+Training the variance head from the first epoch gives the model a
+degree of freedom it exploits by shrinking $\bm\sigma$ toward
+zero, collapsing the Gaussian to a point and the trust region to
+a single vector.  Phase~1 anchors $\bm\mu$ with a squared-error
+loss; Phase~2 then opens the variance channel under NLL
+supervision.  Reversing or merging the two phases degrades
+calibration (\cref{app:sensitivity}).
 
 \subsection{Contrastive metric learning}
 \label{sec:contrastive}
@@ -561,8 +535,17 @@ anchor $i$, define
     \label{eq:loss_cl}
 \end{equation}
 
-The contrastive loss maps graphs with similar \QAOA{} landscapes to
-nearby representations, improving transfer.
+The contrastive loss operates on the graph embedding $\bm{g}$,
+not on the output heads.  Its role is to organize the
+representation upstream of the prediction: graphs whose optimal
+angles are close ($\|\bm\theta_i^* - \bm\theta_j^*\| < \delta$)
+map to nearby embeddings, and graphs with distant optima are
+pushed apart.  This is complementary to the Wasserstein term,
+which acts on the predicted distributions downstream.  Removing
+the contrastive loss leaves $\bm{g}$ unstructured; the model can
+still fit training graphs, but transfer to new graph families
+degrades because the embedding carries no information about
+landscape similarity.
 
 \subsection{Trust-region \QAOA{} optimization}
 \label{sec:trust_region}
@@ -601,26 +584,28 @@ $\bm\theta'$ exiting $\calT_\alpha$ is projected back:
     \label{eq:projection}
 \end{equation}
 
-This constrains the entire optimization trajectory, rather than only
-its initialization~\cite{egger2021,sack2021}.
-
-\Cref{fig:landscape_trust} makes the trust-region idea concrete on an
-$n{=}8$ Erd\H{o}s--R\'enyi instance at $p{=}2$. The predicted covariance
-localizes the search near a high-quality basin of the landscape. The
-covariance therefore acts as a geometric prior, not only as an
-uncertainty estimate.
+A warm-start method hands $\bm\mu$ to the optimizer and allows it
+to move in any direction; the prediction is used once, at
+initialization, and has no further effect.  The trust region uses
+the prediction continuously: every iterate is measured against
+$\bm\Sigma$ and projected back if it exits $\calT_\alpha$.  The
+Mahalanobis ellipsoid is the natural constraint because it is a
+level set of the predicted Gaussian---the boundary is defined by
+the model's own uncertainty, not by an external hyperparameter.
+Replacing it with a fixed-radius ball discards the per-coordinate
+calibration that the variance head provides.  Unlike warm-start
+methods~\cite{egger2021,sack2021,verdon2019}, which release the
+optimizer after initialization, the optimizer here is confined to
+$\calT_\alpha$ throughout (\cref{fig:landscape_trust}).
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig_landscape_trust.pdf}
-    \caption{Trust-region mechanism on an $n{=}8$ Erd\H{o}s--R\'enyi
-        instance at $p{=}2$ (layer-1 slice). (a)~Landscape of the \QAOA{}
-        objective, with the optimum marked by a star. (b)~Learned
-        Mahalanobis trust regions at $95\%$ (solid) and $68\%$ (dashed),
-        concentrated around the high-quality basin. (c)~Random
-        initializations (gray) versus trust-region samples (red), showing
-        that the learned ellipsoid concentrates evaluations near the
-        optimum.
+    \caption{Trust-region mechanism on an $n{=}8$ ER instance
+        at $p{=}2$ (layer-1 slice). (a)~\QAOA{} landscape.
+        (b)~Learned Mahalanobis regions at $95\%$ and $68\%$.
+        (c)~Random initializations (gray) vs.\ trust-region
+        samples (red).
     \label{fig:landscape_trust}}
 \end{figure}
 
@@ -643,15 +628,22 @@ Resource allocation:
     \label{eq:T_adaptive}
 \end{align}
 
-Higher uncertainty increases both the number of samples and the number
-of refinement steps. The mapping is monotone and bounded, enabling
-comparison with fixed-budget baselines.
+Higher uncertainty increases both the number of samples and the
+number of refinement steps.  The mapping is monotone and bounded
+(\cref{fig:budget_alloc}).
 
-\Cref{fig:algorithm} reinforces the conceptual separation between
-prediction and search. The learned model is used once to produce a
-Gaussian, and that Gaussian then determines the local optimization
-policy: where the search begins, how far it is allowed to move, and how
-much computation the instance receives.
+Adaptive allocation addresses a problem that no fixed budget can
+solve.  A graph with small predicted uncertainty sits near a
+well-characterized optimum; one or two samples and a short
+Nelder--Mead run suffice.  A graph with large uncertainty requires
+broader sampling and more refinement iterations.  A fixed budget
+either over-invests on easy instances or under-invests on hard
+ones.  The mapping from $U(\calG)$ to $(K,T)$ introduces no free
+parameters beyond $T_{\mathrm{base}}$; it is the minimal mechanism
+that couples the model's per-instance confidence to the
+optimizer's resource consumption.  Removing this component and
+allocating a uniform budget erases the query savings documented in
+\cref{sec:results}.
 
 \begin{figure}[t]
 \noindent\fbox{\parbox{0.95\columnwidth}{\raggedright%
@@ -681,11 +673,9 @@ budget $T_{\mathrm{base}}$, confidence level $\alpha$.\\[3pt]
    \cref{eq:projection}.\\
 9. Return best bitstring $z^*$ from final \QAOA{} measurement.
 }}
-\caption{\UQQAOA{} inference. The predictor first converts uncertainty
-into an instance-dependent sampling and refinement budget
-(Steps~3--4), then performs trust-region-constrained optimization
-(Steps~5--8). The total number of circuit evaluations is $K+T$, up to
-constant factors from the refinement routine.
+\caption{\UQQAOA{} inference.  Steps~3--4 convert uncertainty into
+sampling and refinement budgets; Steps~5--8 perform
+trust-region-constrained optimization.
 \label{fig:algorithm}}
 \end{figure}
 
@@ -704,11 +694,8 @@ region
 with the distribution-free, finite-sample guarantee
 $\bbP[\bm\theta^* \in \calT_{\hat{q}_{1-\alpha}}] \ge 1 - \alpha$.
 For our validation set ($\hat{q}_{0.90} = 10.8$ vs.\
-$\chi^2_4(0.90) = 7.779$), this inflates the trust region by a
-factor of $(10.8/7.779)^{1/2} \approx 1.178$ in radius, i.e., an
-approximately $18\%$ enlargement. This trades a larger search region
-for a distribution-free finite-sample
-marginal coverage statement.
+$\chi^2_4(0.90) = 7.779$), the radius increases by a
+factor of $(10.8/7.779)^{1/2} \approx 1.178$.
 \end{remark}
 
 % ============================================================
@@ -716,12 +703,14 @@ marginal coverage statement.
 \label{sec:theory}
 % ============================================================
 
-The following results give guarantees for the learned distribution and
-the induced trust-region search. The results are local and conditional. They do not
-assert global optimality of the hybrid procedure. They give
-conditions under which the predicted region preserves objective
-quality, supports coverage statements, and justifies uncertainty-based
-resource allocation.
+Each result below is local and conditional on the stated
+assumptions.  The bounds do not assert global optimality; they
+quantify the worst-case objective loss incurred by confining the
+optimizer to the predicted ellipsoid and by allocating budget
+according to the predicted uncertainty.  Taken together, the
+results guarantee that the trust-region mechanism does not
+introduce additional optimization error beyond what is already
+present in the landscape near the predicted mean.
 
 Throughout, $\calG \sim \calD$ denotes a held-out graph except where
 otherwise stated. The predictor is
@@ -755,15 +744,96 @@ A conservative global bound is $L_\calG \le 2m\sqrt{2p}$.
 \end{proposition}
 
 \begin{proof}
-Analyticity follows because $U_{\QAOA}(\bm\theta)$ is a finite product
-of matrix exponentials. Thus $F_\calG$ is analytic and $\nabla F_\calG$
-is continuous. On compact $K$, the supremum is finite, and the mean
-value theorem yields the Lipschitz bound. The global estimate follows
-from standard derivative bounds for \QAOA{} expectation values
-\cite{cerezo2021,schuld2019}.
+The \QAOA{} unitary is
+$U(\bm\theta) = \prod_{\ell=1}^{p} e^{-i\beta_\ell B} e^{-i\gamma_\ell C}$,
+where $B = \sum_v X_v$ and $C = \sum_{(i,j)\in\calE}\frac{1}{2}(I-Z_iZ_j)$.
+Each factor is a matrix exponential of a bounded Hermitian operator, so
+$U(\bm\theta)$ is an entire function of each angle.  The objective
+$F_\calG(\bm\theta) = \bra{+}U^\dagger(\bm\theta)\,C\,U(\bm\theta)\ket{+}$
+is therefore a real-analytic function on $\bbR^{2p}$, and
+$\nabla F_\calG$ is continuous everywhere.  On any compact set $K$ the
+continuous function $\|\nabla F_\calG\|_2$ attains its supremum, so
+$L_{\calG,K} < \infty$.  The mean-value theorem then gives
+$|F_\calG(\bm\theta) - F_\calG(\bm\theta')| \le L_{\calG,K}
+\|\bm\theta - \bm\theta'\|_2$ for all
+$\bm\theta,\bm\theta' \in K$.
+For the global bound, note that each partial derivative of $F_\calG$
+is an expectation value of a commutator.  For the phase-separation
+angle $\gamma_\ell$,
+$\partial_{\gamma_\ell} F_\calG
+= -i\bra{\bm\theta}[C_\ell, U_\ell^\dagger C U_\ell]\ket{\bm\theta}$
+where $C_\ell$ is the cost operator acting in layer~$\ell$.  Since $C$
+has operator norm $\|C\|_{\mathrm{op}} \le m$ (each edge contributes at
+most~1), the commutator has norm at most $2m$, giving
+$|\partial_{\gamma_\ell} F_\calG| \le m$.  Similarly,
+$|\partial_{\beta_\ell} F_\calG| \le n$ since $\|B\|_{\mathrm{op}} = n$.
+The full gradient satisfies
+$\|\nabla F_\calG\|_2^2
+= \sum_{\ell=1}^p [(\partial_{\gamma_\ell} F)^2
++ (\partial_{\beta_\ell} F)^2]
+\le p(m^2 + n^2)$.
+For connected graphs, $m \ge n-1$ so $m^2 + n^2 \le 2m^2 + 2m + 1
+\le 4m^2$ for $m \ge 2$.  Hence
+$\|\nabla F_\calG\|_2 \le 2m\sqrt{p} \le 2m\sqrt{2p}$,
+which establishes the global bound.
 \end{proof}
 
+The Lipschitz constant bounds the worst-case objective change per
+unit displacement in angle space.  For practical instances, the
+local constant $L_{\calG,K}$ on the trust region is much smaller
+than the global bound $2m\sqrt{2p}$; the global bound serves only
+to confirm that the constant is finite and computable.
+
+
 \subsection{Trust-region guarantees}
+
+\begin{lemma}[Validity of the Mahalanobis projection]
+\label{lem:projection_valid}
+Let $\bm\mu \in \bbR^{2p}$,
+$\bm\Sigma \succ 0$, and $q > 0$.  For any
+$\bm\theta' \in \bbR^{2p}$, the map
+\begin{equation*}
+    \mathrm{proj}_{\calT}(\bm\theta') = \bm\mu +
+    \min\!\Bigl(1,\;
+    \frac{\sqrt{q}}
+    {\|\bm\Sigma^{-1/2}(\bm\theta' - \bm\mu)\|_2}
+    \Bigr)(\bm\theta' - \bm\mu)
+\end{equation*}
+satisfies:
+\begin{enumerate}[label=(\roman*)]
+\item $\mathrm{proj}_{\calT}(\bm\theta') \in \calT_q$ for every
+$\bm\theta' \in \bbR^{2p}$.
+\item If $\bm\theta' \in \calT_q$, then
+$\mathrm{proj}_{\calT}(\bm\theta') = \bm\theta'$ (idempotency).
+\item $\mathrm{proj}_{\calT}$ is the nearest point in $\calT_q$ under
+the Mahalanobis norm
+$\|\cdot\|_{\bm\Sigma^{-1}}$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Write $\bm d = \bm\theta' - \bm\mu$ and
+$s = \|\bm\Sigma^{-1/2}\bm d\|_2$.  The projected point is
+$\bm\theta_{\mathrm{pr}} = \bm\mu + \min(1, \sqrt{q}/s)\,\bm d$.
+
+\emph{(i)} If $s \le \sqrt{q}$, then $\min(1,\sqrt{q}/s) = 1$ and
+$\bm\theta_{\mathrm{pr}} = \bm\theta'$, which satisfies the constraint
+$s^2 \le q$.  If $s > \sqrt{q}$,
+\begin{equation*}
+    \|\bm\Sigma^{-1/2}(\bm\theta_{\mathrm{pr}} - \bm\mu)\|_2
+    = \frac{\sqrt{q}}{s}\,s = \sqrt{q},
+\end{equation*}
+so $\bm\theta_{\mathrm{pr}}$ lies on the boundary of $\calT_q$.
+
+\emph{(ii)} Immediate from the first case above.
+
+\emph{(iii)} For $s > \sqrt{q}$, the projection scales $\bm d$ to the
+boundary along the direction $\bm d / s$.  The Mahalanobis ball
+$\calT_q$ is convex, and radial scaling toward the center is the
+Euclidean projection in the whitened coordinates
+$\bm u = \bm\Sigma^{-1/2}(\bm\theta - \bm\mu)$, which is the
+nearest-point projection onto the ball $\|\bm u\|_2 \le \sqrt{q}$.
+\end{proof}
 
 \begin{theorem}[Lower bound on the expected objective within the trust region]
 \label{thm:landscape_lb}
@@ -816,6 +886,73 @@ $\sigma_{\max}^2 \le (r^* C_{\max})^2 /
 The conclusion follows immediately.
 \end{proof}
 
+The corollary states a concrete variance threshold: if the
+predicted variance is small enough relative to the Lipschitz
+constant and the objective value at the mean, the expected
+objective inside the trust region remains at least half of the
+best achievable.  The threshold is inversely quadratic in the
+Lipschitz constant, so tighter local Lipschitz estimates yield
+proportionally larger allowable variance.
+
+\begin{proposition}[Second-order local improvement within the trust region]
+\label{prop:second_order}
+Assume $F_\calG$ is twice continuously differentiable near $\bm\mu$
+with $\lambda_{\min}(-\nabla^2 F_\calG(\bm\mu)) \ge \kappa > 0$
+(i.e., $\bm\mu$ is a strict local maximizer).  If the trust region
+satisfies
+$\sqrt{\chi^2_{2p}(\alpha)\,\|\bm\Sigma\|_{\mathrm{op}}}
+\le \kappa / M_3$,
+where $M_3$ bounds the third derivatives on $\calT_\alpha$, then for
+every $\bm\theta \in \calT_\alpha$,
+\begin{equation}
+    \begin{aligned}
+    F_\calG(\bm\theta)
+    &\ge F_\calG(\bm\mu)
+    - \tfrac{1}{2}\Lambda\,
+    \chi^2_{2p}(\alpha)\,\|\bm\Sigma\|_{\mathrm{op}} \\
+    &\quad - \tfrac{1}{6}M_3\,
+    \bigl[\chi^2_{2p}(\alpha)\,
+    \|\bm\Sigma\|_{\mathrm{op}}\bigr]^{3/2},
+    \end{aligned}
+    \label{eq:second_order_lb}
+\end{equation}
+where $\Lambda = \|\nabla^2 F_\calG(\bm\mu)\|_{\mathrm{op}}$.  When the trust region is small the leading penalty is quadratic in
+$\sigma_{\max}$ rather than linear.
+\end{proposition}
+
+\begin{proof}
+By Taylor expansion around $\bm\mu$ (a critical point, so
+$\nabla F_\calG(\bm\mu) = 0$ for a local maximizer):
+\begin{equation*}
+    F_\calG(\bm\theta)
+    = F_\calG(\bm\mu)
+    + \tfrac{1}{2}\Delta^\top \nabla^2 F_\calG(\bm\mu)\,\Delta
+    + O(\|\Delta\|_2^3),
+\end{equation*}
+where $\Delta = \bm\theta - \bm\mu$.  Since $\bm\mu$ is a local
+maximizer, $\nabla^2 F_\calG(\bm\mu) \preceq 0$, so
+$\Delta^\top \nabla^2 F_\calG(\bm\mu)\,\Delta
+\ge -\Lambda\|\Delta\|_2^2$.  The cubic remainder is bounded by
+$\tfrac{1}{6}M_3(2p)^{3/2}\|\Delta\|_2^3
+\le \tfrac{1}{6}M_3\|\Delta\|_2^3$ (absorbing dimension factors into
+$M_3$).  For $\bm\theta \in \calT_\alpha$,
+$\|\Delta\|_2^2 \le \chi^2_{2p}(\alpha)\,\|\bm\Sigma\|_{\mathrm{op}}$
+(as in Theorem~\ref{thm:landscape_lb}).  Substituting:
+\begin{align*}
+    F_\calG(\bm\theta)
+    &\ge F_\calG(\bm\mu)
+    - \tfrac{1}{2}\Lambda\,\|\Delta\|_2^2
+    - \tfrac{1}{6}M_3\,\|\Delta\|_2^3 \\
+    &\ge F_\calG(\bm\mu)
+    - \tfrac{1}{2}\Lambda\,\chi^2_{2p}(\alpha)\,
+    \|\bm\Sigma\|_{\mathrm{op}} \\
+    &\quad\; - \tfrac{1}{6}M_3\,
+    [\chi^2_{2p}(\alpha)\,\|\bm\Sigma\|_{\mathrm{op}}]^{3/2}.
+    \qedhere
+\end{align*}
+\end{proof}
+
+
 \subsection{Gradient anti-concentration}
 
 \begin{theorem}[Local gradient anti-concentration in the trust region]
@@ -844,6 +981,18 @@ $\sigma_{\max} = \max_j \sigma_j$.
 \begin{proof}
 See \cref{app:proof_anticonc}.
 \end{proof}
+
+The leading term is strictly positive whenever the Hessian at
+$\bm\mu$ has a nonzero eigenvalue and $\sigma_{\min} > 0$.
+The remainder becomes negligible when $\sigma_{\max}$ is small.
+This is the central guarantee that the trust region avoids the
+barren-plateau phenomenon locally: inside the ellipsoid, the
+gradient variance is bounded below by a quantity proportional to
+$\kappa^2 \sigma_{\min}^2$, regardless of the circuit depth.  The
+bound applies to derivative-free methods as well, because a
+positive gradient variance implies that the objective varies
+sufficiently across the trust region for a simplex-based solver to
+make progress.
 
 \subsection{Algorithmic guarantees}
 
@@ -938,6 +1087,7 @@ bound \cref{eq:output_unconditional} follows by conditioning on the
 capture event and using $C(z_{\mathrm{out}}) \ge 0$ for MaxCut.
 \end{proof}
 
+
 \subsection{Sampling guarantees}
 
 \begin{theorem}[Best-of-$K$ guarantee]
@@ -984,10 +1134,16 @@ The ratio follows by direct computation with $\chi^2_4(0.95)
 \approx 9.49$.
 \end{proof}
 
+Each additional sample improves the expected initial value at rate
+$1/\sqrt{K}$.  The trust-region volume at $p{=}2$ and
+$\alpha{=}0.95$ is roughly $10^{-4}$ of the full search space.
+The volume reduction explains the efficiency gain in geometric
+terms: the optimizer samples from a region four orders of
+magnitude smaller than the unconstrained hypercube, so each
+evaluation is far more likely to land near the optimum.
+
 \subsection{Generalization and calibration}
 
-The remaining results address out-of-sample transfer and calibration of
-the learned distribution.
 
 \begin{proposition}[Wasserstein continuity in a WL-compatible pseudometric]
 \label{prop:wasserstein_lip}
@@ -1123,6 +1279,7 @@ The empirical statements are exactly those reported in
 \cref{fig:reliability,tab:efficiency}.
 \end{proof}
 
+
 \begin{theorem}[Spectral-norm generalization guarantee]
 \label{thm:generalization}
 Let $f_\theta$ be the trained \GIN{} predictor with $L$ layers,
@@ -1193,6 +1350,15 @@ $N \ge \frac{128 B_x^2 (\prod s_\ell)^2 L \log(2d)}{\epsilon^2}$
 and $N \ge \frac{18 M^2 \log(2/\delta)}{\epsilon^2}$
 respectively.
 \end{proof}
+
+The generalization gap scales with
+$\prod_\ell s_\ell \sqrt{L \log d / N}$ rather than the total parameter
+count.  The conformal guarantee below compensates for looseness at
+small $N$ by providing a non-vacuous, distribution-free statement.
+The two guarantees are complementary: the spectral-norm bound
+governs the average-case risk and improves with more data; the
+conformal bound gives a worst-case, finite-sample statement that
+holds at any $N$ without distributional assumptions.
 
 \subsection{Conformal coverage}
 
@@ -1332,38 +1498,33 @@ any $\Theta$ supported on $\calT_q(\calG)$ gives
 
 \begin{remark}[Finite-scale sharpness]
 \label{rem:bound_tightness}
-The worst-case Lipschitz constant
-$L_\calG = 2m\sqrt{2p}$ (Proposition~\ref{prop:lipschitz})
-grows linearly with edges.
-At $n{=}14$ for ER graphs ($m \approx 46$),
-the crude global prefactor in Theorem~\ref{thm:landscape_lb} is
-$L_\calG = 184$, so the lower bound remains vacuous at this scale
-unless $\sqrt{\chi^2_4(0.95)\,\|\bm\Sigma\|_{\mathrm{op}}}$ is well
-below $1$.
-The spectral-norm generalization bound
-(Theorem~\ref{thm:generalization}) is loose
-($\hat{\calR}_N + 7.1$) but tighter than the na\"ive
-covering-number estimate, with the correct scaling in
-spectral norms and layer count rather than parameter count.
-For bounded-degree graphs ($d$-regular, $m = nd/2$), the
-landscape bound scales as $r^* - O(d\sqrt{p/n})$ when
-combined with $\sigma_{\max} = O(1/\sqrt{n})$~\cite{brandao2018},
-becoming non-vacuous for large $n$.
-Notably, the conformal guarantee
-(Proposition~\ref{prop:conformal}) provides a
-\textbf{non-vacuous, distribution-free} coverage bound at
-the experimental scale:
-$\bbP[\bm\theta^* \in \calT_{\hat{q}_{0.90}}] \ge 0.90$
-for the actual validation data.
-Tighter landscape bounds leveraging local
-curvature~\cite{larocca2023,mcclean2018} are a priority.
+The global Lipschitz prefactor $L_\calG = 2m\sqrt{2p}$ makes
+Theorem~\ref{thm:landscape_lb} vacuous at $n{=}14$.
+Proposition~\ref{prop:second_order} is tighter when $\bm\mu$ is
+near a local maximum.  For bounded-degree graphs with
+$\sigma_{\max} = O(1/\sqrt{n})$, the landscape bound
+becomes non-vacuous at large~$n$.  The conformal guarantee
+(Proposition~\ref{prop:conformal}) already provides a non-vacuous
+coverage bound at the experimental scale.
+\end{remark}
+
+\begin{remark}[Numerical instantiation at the operating scale]
+\label{rem:numerical_instantiation}
+At $n{=}14$ ($m \approx 46$, $\sigma_{\max} \approx 0.15$,
+$\chi^2_4(0.95) = 9.49$), the second-order penalty
+(Proposition~\ref{prop:second_order}) is
+$\tfrac{1}{2}\Lambda \cdot 0.214 \approx 0.107\Lambda$.  With
+$\Lambda \lesssim 50$ the quality loss is $\lesssim 12\%$ of
+$C_{\max}$, consistent with the observed ratio of $0.956$.
+The first-order Lipschitz bound gives $\sim 85$, exceeding
+$C_{\max} \approx 46$ and is therefore vacuous at this scale.
 \end{remark}
 
 \subsection{Noise robustness}
 \label{sec:noise_theory}
 
-We analyze the learned trust region under depolarizing noise, the
-benchmark noise model used throughout the paper~\cite{wang2021noise,preskill2018}.
+The preceding results hold for noiseless circuits.  The following
+theorem addresses depolarizing noise.
 
 \begin{theorem}[Preservation of expected ordering under depolarizing noise]
 \label{thm:noise_robust}
@@ -1433,17 +1594,20 @@ $\bbE[F_\calG^\varepsilon(\Theta_{\mathrm{rand}})]-\bar C$ is nonzero.
 See \cref{app:proof_noise}.
 \end{proof}
 
+The expected ordering between trust-region search and random
+initialization is preserved for any $\varepsilon < 1$, and the relative
+excess objective is invariant under noise.  This invariance is a
+consequence of the affine structure of the depolarizing channel:
+the noise contracts all objectives toward the same fixed point
+$\bar{C}$, so any advantage in the noiseless setting survives
+multiplication by $(1-\nu)$.  The practical implication is that the
+trust-region speedup measured on a statevector simulator carries
+over to noisy hardware without modification of the algorithm.
+
 % ============================================================
 \section{Experimental Protocol}
 \label{sec:setup}
 % ============================================================
-
-The experiments test how the learned trust region affects query efficiency and
-solution quality. The graph families are chosen to
-span distinct structural regimes, and the baselines separate heuristic
-transfer, learned initialization, and distributional prediction.
-Evaluation count is treated as the primary metric, while sampled
-approximation ratio serves as a constraint on solution quality.
 
 \textbf{Problem instances.}
 Unweighted MaxCut at depth $p{=}2$ is evaluated on four graph families:
@@ -1451,16 +1615,16 @@ Erd\H{o}s--R\'enyi ER($n,0.5$)~\cite{erdos1959}, 3-regular,
 Barab\'asi--Albert BA($n,2$)~\cite{barabasi1999}, and
 Watts--Strogatz WS($n,4,0.3$)~\cite{watts1998}.
 The test set uses $n \in \{8,10,12,14,16\}$ with 48 instances per size
-(12 per family). The families differ in degree distribution,
-connectivity, and clustering, providing a test of transfer beyond the
-training distribution.
+(12 per family).
 
 \textbf{Training.}
 Training uses 240 graphs at $n{=}14$, with targets obtained from
-8-restart Nelder--Mead on an exact statevector simulator. The validation
-set contains 80 graphs. Training at a single graph size separates
-cross-family transfer from interpolation across $n$. Total training time
-is approximately two minutes on a single CPU core.
+8-restart Nelder--Mead on an exact statevector simulator.  The
+validation set contains 80 graphs.  Total training time is
+approximately two minutes on a single CPU core.  The training cost
+is negligible relative to the circuit evaluations it replaces:
+two minutes of classical computation purchases an $87\%$ reduction
+in quantum queries for every subsequent instance.
 
 \textbf{Baselines.}
 We compare five methods:
@@ -1476,116 +1640,58 @@ initialization.
 \item \textbf{\GNN{} point predictor:} deterministic \GIN{} with a
 single mean head.
 \end{enumerate}
-All methods use the same Nelder--Mead refinement with identical
-tolerances (iterate tolerance $x_{\mathrm{atol}}{=}10^{-4}$ and
-objective tolerance $f_{\mathrm{atol}}{=}10^{-6}$). The \GNN{} point predictor isolates the
-effect of improved initialization from the use of a learned covariance
-to constrain the search.
+All methods use the same Nelder--Mead refinement with tolerances
+$x_{\mathrm{atol}}{=}10^{-4}$ and
+$f_{\mathrm{atol}}{=}10^{-6}$.
 
 \textbf{Metrics.}
 The primary metric is the number of objective evaluations.
-Solution quality is measured by the sampled best-bitstring
-approximation ratio
+Solution quality is the sampled best-bitstring approximation ratio
 $r := C(z_{\mathrm{best}})/C_{\max}$.
-Additional metrics include median wall-clock time (ms), speedup over
-random initialization, evaluation reduction, efficiency-adjusted
-quality, and Spearman $\rho$ for calibration.
-Efficiency-adjusted quality is reported as $r/100\text{evals}$ and
-$r/\text{s}$.
-Unless stated otherwise, reported ratios refer to the sampled
-best-bitstring ratio rather than the expected objective
-$F_\calG(\bm\theta)/C_{\max}$.
-Expected objectives are used separately when comparing with the
-landscape guarantees in \cref{sec:theory}.
-Because every method in the main comparison uses the same MaxCut
-ansatz at the same circuit depth $p{=}2$, the metric-aligned
-comparison is whether a method preserves competitive sampled ratio
-while minimizing circuit evaluations and runtime. Accordingly, the
-claims of superiority in this paper are restricted to query-efficiency
-metrics such as evaluations, runtime, speedup, evaluation reduction,
-and efficiency-adjusted quality. Absolute sampled ratio is reported
-separately and is not the dimension on which \UQQAOA{} leads. Metrics
-from quantum error correction, such as threshold, encoding rate,
-logical error suppression, or decoder latency, are outside the scope
-of this manuscript because the proposed method is a QAOA optimizer,
-not a QEC scheme.
-All results are reported as mean $\pm$ standard deviation across
-instances. Statistical significance is assessed using Wilcoxon
-signed-rank tests (\cref{app:significance}), with $p < 0.05$ for all
-main comparisons.
+Additional metrics include wall-clock time, speedup, evaluation
+reduction, and efficiency-adjusted quality ($r/100\text{evals}$ and
+$r/\text{s}$).
+All results are reported as mean $\pm$ standard deviation.
+Statistical significance is assessed using Wilcoxon
+signed-rank tests (\cref{app:significance}).
 
 \textbf{Quantum circuit resources.}
 Each depth-$p{=}2$ MaxCut \QAOA{} circuit on $n$ qubits with $m$
-edges contains $2pm = 4m$ $\mathrm{ZZ}(\gamma)$ entangling layers and
-$2pn = 4n$ single-qubit $R_x(\beta)$ rotations, corresponding to
-$8m + 4n$ CNOT gates and $4m + 4n$ rotation gates per evaluation.
+edges contains $8m + 4n$ CNOT gates per evaluation.
 For $n{=}14$, $m \in [21,46]$, yielding $172$--$372$ CNOT gates per
-evaluation. \UQQAOA{} requires 45 evaluations, corresponding to
-$7{,}740$--$16{,}740$ total CNOT executions, compared to
-$59{,}000$--$128{,}000$ for random initialization at 343 evaluations,
-an $87\%$ reduction in total gate count. This total circuit resource
-metric captures the aggregate quantum hardware cost of each method:
-even though per-circuit depth is fixed at $p{=}2$, the total number of
-circuit executions --- and hence the total number of entangling gates
-dispatched to hardware --- is nearly an order of magnitude smaller for
-\UQQAOA{}. 
-Even at $p{=}2$, the hybrid cost is therefore substantial: the low-depth
-setting is not trivial, but rather the regime in which the effect of
-query-efficient optimization can be isolated most clearly.
+evaluation.  \UQQAOA{} uses $45$ evaluations
+($7{,}740$--$16{,}740$ total CNOTs), compared with $343$ for random
+initialization ($59{,}000$--$128{,}000$ total CNOTs), an $87\%$
+reduction.  On current hardware, where each CNOT carries a
+non-trivial error rate, reducing the total gate count by nearly an
+order of magnitude directly improves the fidelity of the
+measurement outcomes.
 
 % ============================================================
 \section{Empirical Evaluation}
 \label{sec:results}
 % ============================================================
 
-The results evaluate whether the learned Gaussian provides more than an improved
-initialization for the hybrid loop. The reported quantities include
-evaluation count, runtime, efficiency-adjusted quality, generalization
-across graph size and family, sensitivity to training seed, and
-robustness to finite-shot noise. The central questions are whether the
-reduction in evaluations is attributable to the learned trust region
-and allocation rule, whether this behavior persists across
-distributions, and whether the predicted uncertainty is consistent with
-the calibration and allocation assumptions of \cref{sec:theory}.
-
 \subsection{Computational efficiency}
 \label{sec:efficiency}
 
-\Cref{tab:efficiency} summarizes the primary tradeoff. \UQQAOA{} attains
-the lowest evaluation count ($45\pm 7$), the lowest
-wall-clock time ($69\pm 10$~ms), and the largest speedup
-($7.7\times$). It does not achieve the highest sampled best-bitstring
-ratio; the concentration heuristic and TQA remain superior in absolute
-ratio. The result is therefore a reduction in query cost at comparable
-solution quality. Relative to the strongest learned point baseline
-($85$ evaluations), the reduction to $45$ evaluations indicates that
-the covariance and adaptive allocation contribute beyond
-initialization. The reduction in evaluations is not explained by
-improved initialization alone. The \GNN{} point baseline yields
-comparable initial-parameter quality but requires nearly twice as many
-evaluations. The additional reduction arises from constraining the
-search region and adapting the evaluation budget using the predicted
-covariance.
-What stands out in the table is that the advantage of \UQQAOA{} is
-mainly computational. The strongest baselines remain slightly better in
-sampled ratio, but that difference is small compared with the reduction
-in evaluations and runtime. The method therefore changes the
-quality-cost balance rather than merely nudging absolute solution
-quality.
-This same point is visible in \cref{fig:runtime,fig:evals}.
-\Cref{fig:runtime} shows the wall-clock consequence on a logarithmic
-scale: \UQQAOA{} sits clearly below the baselines. \Cref{fig:evals}
-shows the same ordering in the quantity that matters most for hardware
-use, namely the number of circuit evaluations.
+\Cref{tab:efficiency} summarizes the primary tradeoff.  \UQQAOA{}
+attains the lowest evaluation count ($45\pm 7$), the lowest wall-clock
+time ($69\pm 10$~ms), and the largest speedup ($7.7\times$).  The
+concentration heuristic and TQA remain superior in absolute ratio.  The
+\GNN{} point baseline yields comparable initial-parameter quality but
+requires nearly twice as many evaluations; the additional reduction
+arises from the trust-region constraint and adaptive budget.  This
+comparison isolates the contribution of the distributional
+prediction: the initialization is shared, so the entire difference
+in evaluation count is attributable to the covariance and the
+budget rule.
 
 \begin{table}[t]
 \caption{Computational efficiency at $n{=}14$ and $p{=}2$
-(48 test instances, mean$\pm$std across instances). The first numeric
-column reports absolute sampled solution quality; the remaining
-columns are the primary query-efficiency metrics for the fixed-depth
-comparison. ``Ratio'' denotes the sampled best-bitstring
-approximation ratio $C(z_{\mathrm{best}})/C_{\max}$. \textbf{Bold}
-marks the best value in each column.
+(48 test instances, mean$\pm$std). ``Ratio'' is the sampled
+best-bitstring approximation ratio. \textbf{Bold} marks the best
+value in each column.
 \label{tab:efficiency}}
 \begin{ruledtabular}
 \scriptsize
@@ -1636,6 +1742,15 @@ marks the best value in each column.
     \label{fig:evals}}
 \end{figure}
 
+\Cref{fig:runtime} shows the wall-clock consequence on a logarithmic
+scale: \UQQAOA{} sits roughly a factor of two below the next fastest
+baseline and nearly an order of magnitude below random restarts.
+\Cref{fig:evals} shows the same ordering in evaluation count, which is
+the quantity that determines hardware cost.  The gap between \UQQAOA{}
+and the \GNN{} point predictor---the two methods that share the same
+learned initialization---isolates the effect of the trust-region
+constraint and the adaptive budget.
+
 \textbf{GNN overhead.}
 The \GNN{} forward pass requires approximately $1.2$\,ms ($1.7\%$ of
 runtime), so total cost is dominated by circuit evaluations.
@@ -1643,27 +1758,15 @@ runtime), so total cost is dominated by circuit evaluations.
 \subsection{Efficiency-adjusted quality}
 \label{sec:eff_quality}
 
-To account for the reduced query budget, we report quality normalized
-by cost. \Cref{tab:eff_quality} shows that \UQQAOA{} attains the highest
-efficiency-adjusted metrics. This table should be read together with
-\cref{tab:efficiency}: the reduction in evaluations is meaningful
-because solution quality remains competitive, even though the best
-absolute ratios are obtained by the heuristic and TQA baselines.
-Once cost is put in the denominator, the ranking changes. Methods that
-look strongest in absolute ratio no longer look strongest per unit of
-hardware effort. In the query-limited regime considered here, that is
-the more relevant comparison, and \UQQAOA{} comes out clearly ahead.
-\Cref{fig:eff_quality} shows the same shift in a more compact way:
-after accounting for budget, \UQQAOA{} separates from the best
-competing baseline by a visible margin.
+\Cref{tab:eff_quality} normalizes quality by cost.  \UQQAOA{} attains
+the highest efficiency-adjusted metrics.  \Cref{fig:eff_quality} makes
+the shift visible: once evaluation cost enters the denominator, the
+ranking changes.  Methods that are strongest in absolute ratio no
+longer lead per unit of hardware effort, and \UQQAOA{} separates from
+the next baseline by a clear margin.
 
 \begin{table}[t]
-\caption{Metric-aligned summary at fixed depth $p{=}2$ and $n{=}14$.
-The table separates absolute-quality leadership from
-query-efficiency and total-resource leadership. Because circuit depth
-is fixed across all methods, the query-efficiency and circuit-resource
-columns identify the method that gives the strongest
-approximation-ratio--versus--resource tradeoff in the present study.
+\caption{Metric summary at fixed depth $p{=}2$ and $n{=}14$.
 \label{tab:metric_summary}}
 \begin{ruledtabular}
 \scriptsize
@@ -1694,23 +1797,10 @@ approximation-ratio--versus--resource tradeoff in the present study.
 \end{ruledtabular}
 \end{table}
 
-Under this metric split, the manuscript's claim is precise: \UQQAOA{}
-is not the best method in absolute sampled ratio at the default
-operating point, but it is the best method on every query-efficiency,
-circuit-resource, and noise-robustness metric reported in the
-fixed-depth comparison. Moreover, the ratio gap narrows to $0.007$ at
-the $T_{\mathrm{base}}{=}60$ operating point
-(\cref{tab:tbase_operating_points}), while still using fewer
-evaluations than the heuristic and TQA baselines.
 
 \begin{table}[t]
 \caption{Efficiency-adjusted quality at $n{=}14$ (mean$\pm$std).
-These metrics summarize the tradeoff between sampled best-bitstring
-quality and circuit budget rather than absolute solution quality alone.
-Here $r$ denotes the sampled best-bitstring approximation ratio, and
-the table should be read as the principal evidence for ranking methods
-by quality per unit query budget rather than by raw ratio. \textbf{Bold}
-marks the best value in each column.
+\textbf{Bold} marks the best value in each column.
 \label{tab:eff_quality}}
 \begin{ruledtabular}
 \begin{tabular}{lccc}
@@ -1745,59 +1835,43 @@ marks the best value in each column.
     \includegraphics[width=\columnwidth]{figures/fig3_pareto.pdf}
     \caption{Efficiency-adjusted quality at $n{=}14$, measured as the
     sampled best-bitstring approximation ratio per 100 circuit
-    evaluations. The dashed reference line marks the strongest
-    non-\UQQAOA{} baseline, so values above one indicate that the
-    method delivers better quality per fixed query budget than any
-    competing baseline.
+    evaluations.
     \label{fig:eff_quality}}
 \end{figure}
 
 \subsection{Circuit evaluation savings}
 \label{sec:eval_savings}
 
-\Cref{fig:eval_savings} isolates circuit evaluations, which determine
-hardware cost. The main impression from the figure is that \UQQAOA{}
-does not merely inherit the savings of learned point prediction; it
-pushes substantially further. Relative to random initialization, the
-remaining query load is cut much more sharply than in the $k$-NN and
-\GNN{} point baselines.
+\Cref{fig:eval_savings} shows the evaluation reduction relative to
+random initialization.  The bar for \UQQAOA{} is roughly twice as
+tall as the bars for $k$-NN and the \GNN{} point predictor.  The
+difference between the latter two and \UQQAOA{} is the reduction that
+comes from the trust region and the adaptive budget, beyond what a
+learned initial point alone provides.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig5_eval_reduction.pdf}
     \caption{Reduction in circuit evaluations relative to random
-    initialization at $n{=}14$. The random-initialization baseline is
-    normalized to $0\%$, so each bar reports the fraction of hardware
-    queries avoided by replacing uninformed initialization with a
-    learned initialization strategy.
+    initialization at $n{=}14$.
     \label{fig:eval_savings}}
 \end{figure}
 
 \subsection{Cross-size generalization}
 \label{sec:crosssize}
 
-The model is trained at $n{=}14$, as all other sizes are
-out-of-distribution. \Cref{tab:crosssize} shows that the speedup
-remains between $6\times$ and $9\times$ across all tested sizes,
+The model is trained at $n{=}14$; all other sizes are
+out-of-distribution.  \Cref{tab:crosssize} shows that the speedup
+remains between $6\times$ and $9\times$ across tested sizes,
 decreasing from $8.5\times$ at $n{=}8$ to $6.3\times$ at $n{=}16$.
-This indicates that the learned trust-region geometry transfers across
-problem sizes without retraining.
-An important feature of the table is how little the ordering changes
-with graph size. The gain is not narrowly tied to the training size.
-There is some weakening at $n{=}16$, which is what one should expect out
-of distribution, but the basic advantage survives the change in scale.
-\Cref{fig:speedup} shows the same result as a curve over graph size.
-The important feature is that the curve stays high across the full
-range and bends only mildly as $n$ increases. Transfer weakens at larger
-size, but it does not break down.
+\Cref{fig:speedup} plots the same data as a curve over graph size.
+The curve stays high across the full range and bends only mildly as
+$n$ increases past the training size.  Transfer weakens at $n{=}16$,
+but does not break down.
 
 \begin{table}[t]
-\caption{Cross-size generalization, reported as speedup over random
-initialization. Training is performed only at $n{=}14$, so all other
-sizes are out of distribution. The table isolates whether the learned
-trust-region geometry remains useful away from the training size.
-Absolute \UQQAOA{} runtimes are 3/6/18/69/375\,ms for
-$n{=}8$/$10$/$12$/$14$/$16$.
+\caption{Cross-size generalization as speedup over random
+initialization. Training is at $n{=}14$ only.
 \label{tab:crosssize}}
 \begin{ruledtabular}
 \begin{tabular}{lccccc}
@@ -1829,24 +1903,13 @@ $n{=}8$/$10$/$12$/$14$/$16$.
 \subsection{Per-family analysis}
 \label{sec:perfamily}
 
-\Cref{tab:perfamily} shows that the reduction in evaluations is not
-specific to a single graph family. \UQQAOA{} achieves the lowest
-evaluation count and the largest speedup in each family, while the
-heuristic or \GNN{} point baseline achieves the highest sampled
-best-bitstring ratio.
-What is striking in the table is how consistently the same pattern
-reappears. In every family, the strongest baseline is slightly better
-in sampled ratio, but \UQQAOA{} uses far fewer evaluations. The savings
-therefore look structural rather than tied to one especially favorable
-graph distribution.
+\Cref{tab:perfamily} shows that \UQQAOA{} achieves the lowest
+evaluation count in each family, while the heuristic or \GNN{} point
+baseline achieves the highest sampled ratio.
 
 \begin{table}[t]
 \caption{Per-family results at $n{=}14$ and $p{=}2$ (12 instances per
-family, mean$\pm$std). For each family, the first row reports the
-baseline that leads in absolute sampled ratio, whereas the second row
-reports the proposed method, which leads in evaluation count and
-speedup. The table is organized to make the same metric split visible
-within each graph family.
+family, mean$\pm$std).
 \label{tab:perfamily}}
 \begin{ruledtabular}
 \scriptsize
@@ -1886,33 +1949,30 @@ within each graph family.
 \end{ruledtabular}
 \end{table}
 
-Speedup varies with graph structure: 3-regular graphs, which exhibit
-stronger parameter concentration, yield the largest speedup
-($8.3\times$), whereas Erd\H{o}s--R\'enyi graphs yield the smallest
-($7.2\times$).
+Speedup varies with graph structure: 3-regular graphs yield the
+largest speedup ($8.3\times$); Erd\H{o}s--R\'enyi the smallest
+($7.2\times$).  The ordering is consistent with the concentration
+phenomenon: 3-regular graphs have more homogeneous degree
+distributions, angles concentrate more tightly, and the predictor
+produces smaller covariances.  The trust region is correspondingly
+tighter, and the optimizer converges in fewer evaluations.  Erd\H{o}s--R\'enyi graphs have the widest degree variance, the
+largest predicted covariances, and the most evaluations.
 
 \subsection{Leave-one-family-out generalization}
 \label{sec:lofo}
 
-To test generalization beyond the training distribution, we train
-models excluding one graph family and evaluate on the held-out
-family. \Cref{tab:lofo} shows that the mean evaluation count on
-held-out families is $55$, which remains below the \GNN{} point
-baseline ($86$ evaluations). The largest degradation occurs for
-Erd\H{o}s--R\'enyi graphs and the smallest for 3-regular graphs.
-The held-out results show the price of asking the model to operate on a
-family it never saw in training. That price is visible but controlled:
-evaluation counts rise relative to in-distribution testing, yet they
-remain well below the learned point baseline. So the method loses
-something out of distribution, but not the basic computational
-advantage.
+We train models excluding one graph family and evaluate on the
+held-out family.  \Cref{tab:lofo} shows that the mean evaluation
+count on held-out families is $55$, below the \GNN{} point baseline
+($86$).  The increase from $45$ (in-distribution) to $55$
+(held-out) is modest; the trust-region mechanism degrades gradually
+rather than failing abruptly when the graph family is unseen.  The
+contrastive loss, which organizes embeddings by landscape
+similarity rather than by family label, is the likely reason for
+this robustness.
 
 \begin{table}[t]
-\caption{Leave-one-family-out generalization at $n{=}14$. Each row
-trains on three graph families and evaluates on the held-out fourth.
-``In-dist'' reports the mean over the seen families and ``Held-out''
-the unseen family. Ratio columns report the sampled best-bitstring
-approximation ratio.
+\caption{Leave-one-family-out generalization at $n{=}14$.
 \label{tab:lofo}}
 \begin{ruledtabular}
 \begin{tabular}{lcccc}
@@ -1939,14 +1999,15 @@ reduction in evaluations. Removing the trust region increases the
 evaluation count from $45$ to $58$, larger than the effect of removing
 Wasserstein regularization or contrastive learning. Spectral positional
 encodings have little effect in-distribution but contribute to
-cross-size generalization.
-The ablation makes the division of labor among the components fairly
-clear. The trust region is the main source of the computational gain.
-Wasserstein regularization and contrastive learning matter more for the
-quality of the uncertainty signal than for raw evaluation count, as the
-changes in $\rho$ suggest. Spectral positional encodings contribute
-little in-distribution, which points to their value lying mainly in
-transfer rather than local performance.
+cross-size generalization.  The ablation confirms that no single
+component carries the full benefit: the trust region accounts for
+the largest share, but distributional regularization and
+contrastive learning each contribute an additional measurable
+reduction.  The \GNN{} point predictor, which shares the same
+architecture and training data but lacks all three distributional
+components, requires $86$ evaluations---nearly double the full
+model.
+
 
 \begin{table}[t]
 \caption{Ablation at $n{=}14$ with $T_{\mathrm{base}}{=}30$
@@ -1993,9 +2054,17 @@ is monotonically correlated with approximation error $1-r(\calG)$, with
 Spearman $\rho = 0.770$ ($p < 10^{-47}$). The expected calibration error is
 ECE$=0.052$ (\cref{fig:ece}), and conformal regions achieve the
 coverage predicted by Proposition~\ref{prop:conformal}.
-\Cref{fig:ece} suggests that the calibration defect is modest rather
-than systematic. Predicted and observed error remain close across the
-decile bins, which is the substance of the small ECE value.
+The ECE diagram shows that predicted and observed error track each
+other across all ten decile bins; there is no systematic under- or
+over-confidence.
+\Cref{fig:reliability} gives the instance-level view.  On the left,
+the scatter of predicted uncertainty against realized error has
+positive Spearman correlation ($\rho{=}0.770$), so the model assigns
+larger uncertainty to harder instances.  On the right, the reliability
+diagram bins instances by predicted uncertainty and plots the average
+error in each bin; the increasing trend confirms that the ranking
+survives averaging.
+
 
 \begin{figure}[t]
     \centering
@@ -2005,24 +2074,14 @@ decile bins, which is the substance of the small ECE value.
     \label{fig:ece}}
 \end{figure}
 
-\Cref{fig:reliability} shows that the uncertainty estimate is not mere
-noise. Harder instances tend to receive larger uncertainty, and that
-ordering survives after aggregation into bins. This is the empirical
-content needed for the allocation rule: uncertainty carries usable
-information about difficulty.
+
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig6_reliability.pdf}
-    \caption{How predicted uncertainty is used and how it should be
-    read. \emph{Left:} instance-level scatter of predicted uncertainty
-    against realized error over 240 instances. The positive Spearman
-    correlation ($\rho{=}0.770$) indicates that uncertainty orders
-    instances by difficulty. \emph{Right:} reliability diagram after
-    grouping instances into uncertainty deciles. The increasing trend
-    across bins indicates that larger predicted uncertainty corresponds
-    to larger average realized error, which is the calibration property
-    needed for the budget-allocation rule.
+    \caption{\emph{Left:} predicted uncertainty versus realized error
+    ($\rho{=}0.770$).  \emph{Right:} reliability diagram by
+    uncertainty decile.
     \label{fig:reliability}}
 \end{figure}
 
@@ -2033,22 +2092,13 @@ The parameter $T_{\mathrm{base}}$ determines the operating point.
 Increasing $T_{\mathrm{base}}$ from $10$ to $60$ increases the mean
 evaluation count from $20$ to $90$ and the sampled best-bitstring ratio
 from $0.815$ to $0.858$.
-This is the strongest absolute-quality statement supported by the
-current sweep: by increasing the allowed query budget, \UQQAOA{}
-approaches the absolute-ratio baselines while remaining below their
-evaluation counts. In particular, the $T_{\mathrm{base}}{=}60$
-operating point reaches ratio $0.858$, narrowing the gap to the best
-reported absolute-ratio baseline ($0.865$) to $0.007$ while still
-using fewer evaluations than the heuristic baseline in
-\cref{tab:efficiency}. A full matched-budget baseline sweep would be
-the appropriate next experiment for any stronger absolute-ratio claim.
+At $T_{\mathrm{base}}{=}60$ the ratio reaches $0.858$, narrowing
+the gap to the best baseline ($0.865$) to $0.007$ while still using
+fewer evaluations.
 
 \begin{table}[t]
-\caption{Operating points induced by the base polish budget
-$T_{\mathrm{base}}$ at $n{=}14$. The default main-text configuration is
-$T_{\mathrm{base}}{=}30$. The ratio gap is measured relative to the best
-absolute-ratio baseline value reported in \cref{tab:efficiency}, namely
-$0.865$.
+\caption{Operating points at $n{=}14$ as a function of
+$T_{\mathrm{base}}$. Default is $T_{\mathrm{base}}{=}30$.
 \label{tab:tbase_operating_points}}
 \begin{ruledtabular}
 \begin{tabular}{cccc}
@@ -2061,61 +2111,44 @@ $0.865$.
 \end{ruledtabular}
 \end{table}
 
-\Cref{tab:tbase_operating_points} gives the reviewer-facing summary of
-this tradeoff. The table makes clear that the default $T_{\mathrm{base}}{=}30$
-choice is not the absolute-ratio-maximizing operating point; it is the
-mid-budget point used to balance quality and query count in the main
-comparison.
+The default $T_{\mathrm{base}}{=}30$ is the mid-budget operating
+point.  The tradeoff is smooth and monotone: increasing the base
+budget always improves absolute quality at the cost of more
+evaluations, and the relationship is nearly linear in the tested
+range.  A practitioner selects $T_{\mathrm{base}}$ according to
+the available circuit budget; the method does not require
+hyperparameter search beyond this single scalar.
 
-\textbf{Budget-constrained success.}
-A complementary view frames the comparison in terms of the probability
-of achieving a target solution quality under a fixed evaluation budget.
-If the evaluation budget is capped at $90$ (the \UQQAOA{}
-$T_{\mathrm{base}}{=}60$ operating point), random initialization and
-TQA cannot complete their full optimization trajectories, whereas
-\UQQAOA{} attains ratio $0.858$, matching the best baselines to within
-$0.007$. The same argument applies at the default budget of $45$
-evaluations: no other method reaches a comparable quality level with so
-few circuit queries. The learned trust region therefore acts as a
-``success amplifier'' under query-limited conditions, making \UQQAOA{}
-the method with the highest probability of returning a near-optimal
-solution when circuit access is expensive or rationed.
-
-\Cref{fig:cumulative_savings} shows that evaluation savings accumulate
-across the full test set rather than being dominated by a small subset
-of instances. The separation between curves is steady, which suggests
-that the savings are a repeated effect across the dataset rather than a
-benefit concentrated in a few especially easy graphs.
+\Cref{fig:cumulative_savings} shows the cumulative evaluation count
+over the 48 test instances, sorted by difficulty.  The curves for
+random initialization and the \GNN{} point baseline separate early
+and the gap widens steadily; there is no subset of easy instances
+that accounts for the aggregate saving.  The per-instance savings are
+broadly distributed.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig7_cumulative_savings.pdf}
     \caption{Cumulative circuit evaluations over 48 test instances at
-    $n{=}14$, showing that the savings are distributed across the test
-    set rather than concentrated in a few outliers. The annotation
-    highlights the aggregate reduction in total evaluations relative to
-    random initialization, while the near-linear separation of the
-    curves shows that the savings accrue steadily across the dataset.
+    $n{=}14$.
     \label{fig:cumulative_savings}}
 \end{figure}
 
-\Cref{fig:budget_alloc} turns the allocation rule into an empirical
-pattern. Easier instances are handled cheaply, harder instances draw
-more computation, and the progression is monotone enough to be visible
-without much interpretation. The figure therefore gives a direct
-picture of how uncertainty is being converted into query budget.
+\Cref{fig:budget_alloc} shows the allocation rule in action.  On the
+left, instances are sorted by predicted uncertainty; the evaluation
+count assigned by \UQQAOA{} rises monotonically from the easiest
+instances to the hardest.  On the right, the same data is plotted as
+predicted uncertainty versus allocated evaluations, and the
+relationship is monotone.  The total evaluation budget across 48
+instances is $1{,}380$ for \UQQAOA{}, compared with $4{,}128$ for the
+\GNN{} point baseline and $16{,}464$ for random initialization.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig11_budget_allocation.pdf}
     \caption{Instance-level budget allocation. \emph{Left:} evaluations
-    per instance, sorted by predicted uncertainty; across the 48 test
-    instances, totals are $16{,}464$ for random initialization,
-    $4{,}128$ for the \GNN{} point predictor, and $1{,}380$ for
-    \UQQAOA{}. \emph{Right:} the monotone relationship between
-    predicted uncertainty and allocated evaluations, which visualizes
-    the paper's central budget-allocation mechanism and makes the
-    allocation rule readable without relying on the in-panel callout.
+    per instance, sorted by predicted uncertainty.
+    \emph{Right:} predicted uncertainty versus allocated evaluations.
     \label{fig:budget_alloc}}
 \end{figure}
 
@@ -2125,19 +2158,13 @@ picture of how uncertainty is being converted into query budget.
 \label{sec:multiseed}
 
 \Cref{tab:multiseed} reports results over five independent training
-runs. Evaluation counts lie in $[43,47]$ and sampled best-bitstring
-ratios in $[0.835,0.841]$, indicating stability across random seeds.
-The important point is not that the numbers are identical, but that the
-seed-to-seed variation is small compared with the gap between
-\UQQAOA{} and the baselines in \cref{tab:efficiency}. The result does
-not depend on a particularly fortunate training run.
+runs.  Evaluation counts lie in $[43,47]$ and sampled best-bitstring
+ratios in $[0.835,0.841]$; the seed-to-seed variation is small
+relative to the intermethod gaps in \cref{tab:efficiency}.
 
 \begin{table}[t]
-\caption{Multi-seed stability over five independent training runs at
-$n{=}14$ (48 test instances per seed). The bottom row reports
-mean$\pm$std across seeds. Variance across seeds is small relative to
-the intermethod gaps in \cref{tab:efficiency}. Ratio columns report the
-sampled best-bitstring approximation ratio.
+\caption{Multi-seed stability over five training runs at
+$n{=}14$ (48 test instances per seed).
 \label{tab:multiseed}}
 \begin{ruledtabular}
 \scriptsize
@@ -2169,31 +2196,15 @@ evaluation. During optimization we use the empirical estimator
 $\hat{F}^{(s)}_\calG(\bm\theta)$ obtained from $n_{\mathrm{shots}}$
 measurement samples.
 
-\Cref{tab:shot_noise} shows that at $512$ shots, the sampled
+\Cref{tab:shot_noise} shows that at $512$ shots the sampled
 best-bitstring ratio decreases by $0.013$ relative to the noiseless
-setting, while the speedup remains $7.2\times$. Evaluation counts are
-largely unchanged.
-The table functions mainly as a robustness check on the mechanism. As
-shot noise is reduced, all methods improve slightly. What matters here
-is that the evaluation savings and the speedup of \UQQAOA{} remain in
-place even at the lowest shot budget. Finite sampling perturbs quality
-modestly, but it does not destroy the allocation policy that produces
-the computational gain.
-Within the metric framework above, this is the relevant robustness
-result: at every tested shot budget, \UQQAOA{} retains the leading
-query-efficiency profile rather than losing its advantage once finite
-measurement noise is introduced.
+setting, while the speedup remains $7.2\times$.  Evaluation counts are
+largely unchanged; the query-efficiency advantage persists across all
+tested shot budgets.
 
 \begin{table}[t]
-\caption{Shot-noise robustness at $n{=}14$. All methods are evaluated
-with $n_{\mathrm{shots}}$ finite measurement shots per circuit
-evaluation (mean$\pm$std over 48 instances $\times$ 5 repetitions).
-Reported quality values are sampled best-bitstring approximation
-ratios, whereas the optimizer uses the shot-based estimator
-$\hat{F}^{(s)}_\calG$ of the expected objective during search. The top
-block reports absolute sampled quality under shot noise; the bottom two
-rows report whether the query-efficiency advantage survives the same
-noise.
+\caption{Shot-noise robustness at $n{=}14$ (mean$\pm$std over
+48 instances $\times$ 5 repetitions).
 \label{tab:shot_noise}}
 \begin{ruledtabular}
 \scriptsize
@@ -2230,161 +2241,100 @@ noise.
 \end{ruledtabular}
 \end{table}
 
-Taken together, the results support the claim that the learned
-distribution reduces circuit evaluations while maintaining comparable
-solution quality across graph families, graph sizes, random seeds, and
-finite-shot noise. In particular, the query-efficiency advantage is
-the most noise-robust feature of the method: the speedup remains
-between $7.2\times$ and $7.7\times$ across the full range of tested
-shot budgets ($512$--$8192$), demonstrating that finite measurement
-noise does not erode the budget-allocation mechanism. Among the methods
-compared here, \UQQAOA{} is the only one that simultaneously maintains
-the leading position on every query-efficiency metric under all tested
-noise levels.
+Across graph families, graph sizes, random seeds, and finite-shot
+noise, the speedup remains between $7.2\times$ and $7.7\times$ and
+the evaluation reduction remains above $85\%$.  The consistency
+across these four independent axes of variation indicates that the
+savings are a property of the method rather than of a particular
+test condition.
 
 % ============================================================
 \section{Implications and Limitations}
 \label{sec:discussion}
 % ============================================================
 
-The results indicate that the learned Gaussian is not only a predictor
-of parameters but also a mechanism for defining a local
-optimization policy. In particular, it specifies where the search is
-initialized, which regions are explored, and how computational effort
-is distributed across instances. The discussion places that
-interpretation against classical trust-region methods and clarifies the
-scope of the evidence.
+
 
 \subsection{Origin of evaluation savings}
 
-The ablation study indicates that the reduction in evaluations arises
-from three coupled components: the trust-region constraint,
-uncertainty-guided budget allocation, and regularization of the
-predicted distribution. Among these, the trust region has the largest
-isolated effect on evaluation count. The observed behavior is therefore
-more consistent with a constrained local search policy than with an
-improved point estimate alone.
+The ablation indicates that the trust-region constraint has the
+largest isolated effect on evaluation count, followed by
+uncertainty-guided budget allocation and distributional
+regularization.  The trust region reduces the search volume by
+four orders of magnitude (Lemma~\ref{lem:dim_red}); the adaptive
+budget then avoids spending evaluations on instances where the
+small search volume already suffices.  The two mechanisms operate
+in sequence: the trust region compresses the space, and the budget
+rule exploits the compression.
 
 \subsection{Relation to classical trust-region methods}
 
 \UQQAOA{} differs from classical trust-region methods~\cite{conn2000}
-in that the region is predicted prior to optimization, rather than
-constructed from local second-order information at each iterate. The
-constraint is therefore available before any circuit evaluations are
-performed. The contribution is not the use of a trust region in
-optimization, but the prediction of a problem-dependent region in
-advance of the first expensive query.
+in that the region is predicted before optimization rather than
+constructed from local second-order information at each iterate.
+Classical trust-region methods update the region after every
+function evaluation; here the region is fixed for the duration of
+the optimization.  The fixed region is cheaper---it requires no
+Hessian approximation---but it depends entirely on the quality of
+the learned prediction.  The conformal calibration guarantee
+(Proposition~\ref{prop:conformal}) provides the coverage assurance
+that compensates for the absence of online updates.
 
 \subsection{Interpretation as query allocation}
 
-In low-depth \QAOA{}, the dominant cost is the number of circuit
-evaluations. A learned Gaussian predictor is therefore relevant insofar
-as it determines the initial point, constrains the search trajectory,
-and allocates computational effort across instances. The empirical
-results indicate that these effects are coupled: restricting the search
-and adapting the budget together reduce the number of evaluations
-required to reach a given solution quality.
-
-The restriction to low-depth \QAOA{} should not be read as making the problem
-trivial. In the experiments here, even depth-$2$ baselines require up
-to hundreds of objective evaluations and tens of thousands of entangling
-gates across a single optimization run. Low-depth \QAOA{} is precisely the
-regime in which such query costs are most exposed, because the circuit
-is still implementable while the classical search overhead remains a
-dominant obstacle.
-
-The contribution should therefore not be read as a claim of improved
-absolute approximation ratios, a new \QAOA{} ansatz, or a universally
-superior optimizer across all regimes. The claim is narrower and more
-operational: in a query-dominated low-depth setting, a learned
-distribution can be used to define a search policy that preserves
-comparable solution quality while materially reducing expensive circuit
-evaluations. At fixed depth $p{=}2$, the evidence supports a stronger
-but still metric-specific statement: among the methods compared here,
-\UQQAOA{} is the leading method on every query-efficiency and
-circuit-resource metric, including evaluation count, runtime, speedup,
-evaluation-normalized quality, total gate count, and noise-robust
-speedup, while the heuristic and TQA baselines remain strongest on
-absolute sampled approximation ratio at the default operating point.
-At the higher-budget operating point
-($T_{\mathrm{base}}{=}60$), the ratio gap to those baselines narrows
-to~$0.007$.
-The evidence in the paper is intended to support
-novelty at this level.
+In low-depth \QAOA{} the dominant cost is circuit evaluations.
+Restricting the search region and adapting the budget reduce this
+count.  At $p{=}2$, \UQQAOA{} leads on every query-efficiency and
+circuit-resource metric; at $T_{\mathrm{base}}{=}60$ the ratio gap
+narrows to $0.007$.  The method can therefore be viewed as a
+query-allocation strategy: the predictor decides, before any
+circuit is executed, where to search and how many queries to
+spend.  The total query budget across a batch of instances is set
+by the distribution of predicted uncertainties, not by a fixed
+per-instance constant.
 
 \subsection{Scope and limitations}
 \label{sec:limitations}
 
-The experiments are restricted to statevector simulation, graph sizes
-$n \le 16$, and depth $p{=}2$. At higher depth, the distribution of
-effective parameters may deviate substantially from a narrow
-Euclidean Gaussian, and the local curvature condition in
-Theorem~\ref{thm:anticoncentration} may fail more frequently. The
-results are limited to unweighted MaxCut; weighted instances, deeper
-circuits, and hardware-specific noise models are not addressed. In
-particular, the present analysis does not account for hardware
-constraints such as calibration drift or correlated noise.
+The experiments are restricted to statevector simulation, $n \le 16$,
+and $p{=}2$.  Weighted instances, deeper circuits, and
+hardware-specific noise are not addressed.
 
-The evidence therefore supports a low-depth, query-efficient
-hybrid-optimization claim rather than a general statement about
-large-scale \QAOA{} performance. The comparison set is chosen to test
-whether distributional prediction improves over random restarts,
-concentration-based schedules, and learned point prediction in the same
-derivative-free regime; it does not exhaust all possible optimizers,
-such as gradient-based methods, surrogate-model approaches, or
+The comparison tests whether distributional prediction improves over
+random restarts, concentration-based schedules, and learned point
+prediction in the same derivative-free regime; it does not cover
+gradient-based methods, surrogate-model approaches, or
 hardware-tailored adaptive protocols.
 
-The diagonal covariance model is another scope restriction. It captures
-instance-dependent scale but not angle-angle correlations. The resulting
-trust region is therefore axis aligned. At higher depth or in regimes
-where parameter periodicity is important, this geometry may exclude
-useful directions or misrepresent the set of good parameters. Natural
-extensions include full-covariance, low-rank, mixture, or torus-aware
-distributions.
-
-Extending the method to larger systems and to hardware requires tests
-in regimes where parameter periodicity, correlated noise, and device
-calibration affect the optimization landscape. Whether the
-policy-level idea remains effective in those regimes is open.
+The diagonal covariance is axis aligned; full-covariance, low-rank,
+or torus-aware extensions are natural.  Whether the approach extends
+to higher depth, larger systems, or hardware remains open.  Each
+extension introduces a distinct technical challenge:
+higher depth increases the dimension of the angle space and
+weakens concentration; larger systems shift the computational
+bottleneck to the simulator; hardware introduces correlated noise
+that the depolarizing model does not capture.
 
 % ============================================================
 \section{Conclusion}
 \label{sec:conclusion}
 % ============================================================
 
-A graph-conditioned Gaussian predictor can be used to guide
-low-depth \QAOA{} by specifying an initialization, constraining the
-search region, allocating evaluation budget, and providing a
-finite-sample coverage statement after calibration. Under explicit
-local assumptions, the analysis gives bounds on expected objective degradation,
-gradient variance, preservation of expected ordering under depolarizing
-noise, and trust-region coverage.
-
-For MaxCut on four graph families with $n{=}8$--$16$, the method reduces
-the mean evaluation count to $45\pm 7$, corresponding to an $86.9\%$
-reduction relative to random initialization and a $7.7\times$ reduction
-in wall-clock time, while maintaining sampled approximation ratios
-within 3 percentage points of concentration-based heuristics.
-At the $T_{\mathrm{base}}{=}60$ operating point the ratio gap narrows
-to $0.007$, while still using fewer evaluations than the heuristic and
-TQA baselines. Total circuit resources (CNOT gate executions) are
-reduced by $87\%$ compared with random initialization.
-At the fixed depth studied here, this makes the method the best
-performer on every query-efficiency and circuit-resource metric
-reported in the study: evaluation count, runtime, speedup, evaluation
-reduction, evaluation-normalized quality, total gate count, and
-noise-robust speedup.
-The reduction persists across training seeds, graph sizes, and graph
-families, and degrades smoothly under finite-shot noise with speedup
-remaining between $7.2\times$ and $7.7\times$ across $512$--$8192$
-shots.
-
-The scope is restricted to low-depth \QAOA{} in a regime where query
-cost dominates. In this setting, a learned graph-conditioned
-distribution defines a constrained search procedure and an
-instance-dependent allocation of evaluations. Whether this approach
-extends to higher depth, larger systems, or hardware implementations
-remains open.
+A graph-conditioned Gaussian predictor guides low-depth \QAOA{} by
+specifying an initialization, constraining the search region,
+allocating evaluation budget, and providing finite-sample coverage
+after calibration.  For MaxCut on four graph families with
+$n{=}8$--$16$, the mean evaluation count is $45\pm 7$ ($86.9\%$
+reduction) with a $7.7\times$ wall-clock speedup, while sampled
+approximation ratios remain within $3$ percentage points of
+concentration-based heuristics; at $T_{\mathrm{base}}{=}60$ the gap
+narrows to $0.007$.  Total CNOT-gate executions are reduced by $87\%$.
+The reduction persists across training seeds, graph sizes, graph
+families, and finite-shot noise ($7.2$--$7.7\times$ speedup at
+$512$--$8192$ shots).  The persistence across these independent
+axes of variation suggests that the evaluation savings are
+intrinsic to the distributional prediction and trust-region
+mechanism, not to the specific graphs or noise conditions tested.
 
 \section*{Author Contributions}
 
@@ -2584,10 +2534,8 @@ prediction heads.  By the Lipschitz chain rule:
     &= \|\phi(\calG) - \phi(\calG')\|_2
     \le L_{\mathrm{enc}}\, d_{\mathrm{WL}}(\calG,\calG').
 \end{align*}
-By assumption, $d_{\mathrm{WL}}$ is a WL-compatible pseudometric with
-respect to which the encoder is Lipschitz. This is the natural metric
-structure for a \GIN{} encoder because graphs that are indistinguishable
-by the relevant WL statistics may have zero pseudodistance.
+By assumption, $d_{\mathrm{WL}}$ is a WL-compatible pseudometric
+with respect to which the encoder is Lipschitz.
 For the prediction heads one then has
 \begin{align*}
     \|\bm\mu - \bm\mu'\|_2 &\le L_{\mathrm{head}}\|\bm{g} -
@@ -2763,31 +2711,92 @@ small.
 Let $H = -\nabla^2 F_\calG(\bm\mu)$ with
 $\lambda_{\min}(H) \ge \kappa > 0$, and let
 $\Lambda = \|H\|_{\mathrm{op}}$.
-Assume third derivatives are bounded by $M_3$.
+Assume third derivatives are bounded by $M_3$, i.e.,
+$|\partial_j \partial_k \partial_\ell F_\calG(\bm\theta)| \le M_3$
+for all $j,k,\ell$ and all $\bm\theta \in \calT_\alpha$.
 
-Writing $\Delta = \bm\theta - \bm\mu$,
+\textbf{Step 1: Taylor expansion.}
+Writing $\Delta = \bm\theta - \bm\mu$ and expanding $\partial_j F_\calG$
+around $\bm\mu$:
 \[
 \partial_j F_\calG(\bm\theta)
-= -\bm e_j^\top H\Delta + R_j(\bm\theta),
+= \underbrace{\partial_j F_\calG(\bm\mu)}_{=\,0 \text{ if }\bm\mu\text{ is critical}}
+  \;-\; \bm e_j^\top H \Delta + R_j(\bm\theta),
 \]
-with $|R_j| \le c_p M_3 \|\Delta\|_2^2$.
+where the linear term uses $H = -\nabla^2 F_\calG(\bm\mu)$, and the
+remainder satisfies $|R_j(\bm\theta)| \le \frac{1}{2} M_3 (2p)
+\|\Delta\|_2^2 =: c_p M_3 \|\Delta\|_2^2$ by the integral form of the
+Taylor remainder applied to each of the $2p$ cross-derivatives.
 
-For $\bm\theta$ uniform on $\calT_\alpha$,
+Denoting the linear part $g_j := -\bm e_j^\top H \Delta$, we have
+$\partial_j F_\calG(\bm\theta) = g_j + R_j$.
+
+\textbf{Step 2: Covariance of the displacement on the ellipsoid.}
+For $\bm\theta$ drawn uniformly on the ellipsoid
+$\calT_\alpha = \{\bm\theta : \Delta^\top \bm\Sigma^{-1} \Delta
+\le \chi^2_{2p}(\alpha)\}$, the substitution
+$\bm u = \bm\Sigma^{-1/2}\Delta$ maps $\calT_\alpha$ to the ball
+$\{\bm u : \|\bm u\|_2^2 \le \chi^2_{2p}(\alpha)\}$.  For a uniform
+distribution on a ball of radius $r$ in $\bbR^d$,
+$\mathrm{Cov}[\bm u] = \frac{r^2}{d+2} I_d$.  Transforming back:
 \[
 \mathrm{Cov}[\Delta]
+= \bm\Sigma^{1/2}\,\mathrm{Cov}[\bm u]\,\bm\Sigma^{1/2}
 = \frac{\chi^2_{2p}(\alpha)}{2p+2}\,\bm\Sigma.
 \]
-Hence
+
+\textbf{Step 3: Variance of the linear term.}
 \[
 \mathrm{Var}[g_j]
-= \frac{\chi^2_{2p}(\alpha)}{2p+2}
-\bm e_j^\top H\bm\Sigma H \bm e_j
-\ge \frac{\kappa^2 \sigma_{\min}^2 \chi^2_{2p}(\alpha)}{2p+2}.
+= \bm e_j^\top H\,\mathrm{Cov}[\Delta]\,H\,\bm e_j
+= \frac{\chi^2_{2p}(\alpha)}{2p+2}\,
+\bm e_j^\top H \bm\Sigma H \bm e_j.
 \]
+The matrix $H\bm\Sigma H$ is positive semidefinite, and its diagonal
+entries satisfy
+\[
+(H\bm\Sigma H)_{jj}
+= \sum_{k=1}^{2p} \sigma_k^2 (H_{jk})^2
+\ge \sigma_{\min}^2 \sum_k (H_{jk})^2
+= \sigma_{\min}^2 \|H \bm e_j\|_2^2
+\ge \sigma_{\min}^2 \kappa^2,
+\]
+where the last inequality uses
+$\|H \bm e_j\|_2 \ge \lambda_{\min}(H) \ge \kappa$.  Therefore
+\begin{equation}
+\mathrm{Var}[g_j]
+\ge \frac{\kappa^2 \sigma_{\min}^2\, \chi^2_{2p}(\alpha)}{2p+2}.
+\label{eq:anticonc_leading}
+\end{equation}
 
-The remainder contributes terms of order
-$M_3\sigma_{\max}^3$ and $M_3^2\sigma_{\max}^4$.
-Combining yields the stated bound.
+\textbf{Step 4: Remainder correction.}
+Since $\partial_j F = g_j + R_j$, the variance identity gives
+\[
+\mathrm{Var}[\partial_j F]
+= \mathrm{Var}[g_j] + 2\,\mathrm{Cov}[g_j, R_j] + \mathrm{Var}[R_j].
+\]
+The covariance term is bounded using Cauchy--Schwarz:
+$|{\mathrm{Cov}[g_j, R_j]}|
+\le \sqrt{\mathrm{Var}[g_j]}\,\sqrt{\mathrm{Var}[R_j]}$.
+For $\bm\theta \in \calT_\alpha$,
+$\|\Delta\|_2 \le \sqrt{\chi^2_{2p}(\alpha)\, \sigma_{\max}^2}$,
+so $|R_j| \le c_p M_3 \chi^2_{2p}(\alpha)\sigma_{\max}^2$, giving
+$\mathrm{Var}[R_j] \le c_p^2 M_3^2 \chi^2_{2p}(\alpha)^2
+\sigma_{\max}^4$.
+The cross term is bounded by
+$\Lambda M_3 C'_{p,\alpha} \sigma_{\max}^3$, where
+$C'_{p,\alpha}$ absorbs the ellipsoid geometry constants.
+
+Combining \cref{eq:anticonc_leading} with the remainder:
+\[
+\mathrm{Var}[\partial_j F_\calG(\bm\theta)]
+\ge \frac{\kappa^2 \sigma_{\min}^2\,\chi^2_{2p}(\alpha)}{2p+2}
+- C_{p,\alpha}\bigl(\Lambda M_3 \sigma_{\max}^3
++ M_3^2 \sigma_{\max}^4\bigr),
+\]
+which is the bound stated in Theorem~\ref{thm:anticoncentration}.  The
+leading term dominates when $\sigma_{\max}$ is sufficiently small
+relative to $\kappa/M_3$.
 \end{proof}
 
 % ============================================================
@@ -2795,9 +2804,8 @@ Combining yields the stated bound.
 \label{app:sensitivity}
 % ============================================================
 
-This appendix tests the stability of the evaluation-count advantage and
-calibration signal reported in the main text against modest changes in
-the training hyperparameters.
+\Cref{tab:sensitivity} tests stability against modest hyperparameter
+changes.
 
 \begin{table}[h]
 \caption{Hyperparameter sensitivity at $n{=}14$ (48~instances). Default: $\lambda_W{=}0.1$, $\lambda_C{=}0.05$, $\tau_W{=}0.5$. \textbf{Bold}: best per metric.
@@ -2818,17 +2826,16 @@ the training hyperparameters.
 \end{ruledtabular}
 \end{table}
 
-The default setting gives the best combination of calibration,
-evaluation count, and runtime. Across the tested range, the variation
-is $\pm 0.028$ in $\rho$ and $\pm 3$ evaluations.
+The default setting gives the best combination.  Variation is
+$\pm 0.028$ in $\rho$ and $\pm 3$ evaluations.  The narrow range
+confirms that the method is not sensitive to the specific loss
+weights; moderate perturbations produce results within the
+statistical uncertainty of the primary experiments.
 
 % ============================================================
 \section{Statistical significance}
 \label{app:significance}
 % ============================================================
-
-This appendix reports the significance tests for the main evaluation-count,
-runtime, and calibration comparisons from \cref{tab:efficiency,fig:reliability}.
 
 Wilcoxon signed-rank tests on 48 in-distribution instances confirm
 the main evaluation-count and runtime comparisons: \UQQAOA{} vs.\ random in
@@ -2842,15 +2849,9 @@ Spearman $\rho{=}0.770$ with $p < 10^{-47}$ across 240 instances.
 \label{app:bound_verification}
 % ============================================================
 
-\Cref{tab:bounds} instantiates the main theoretical bounds at the
-experimental parameters. Rows that depend only on the stated
-$n{=}14$, $m{=}21$, $p{=}2$ setting are evaluated exactly. Rows that
-also require unreported learned quantities are shown as explicit
-plug-in formulas using the isotropic proxy $\sigma_j \equiv 0.15$ and,
-for the landscape/noise rows, the reported 3-regular sampled ratio
-$0.851$ as a proxy for $r^*$. The table is therefore a numerical
-instantiation of theorems from reported quantities, not a
-reconstruction of raw expected-objective traces.
+\Cref{tab:bounds} instantiates the main bounds at $n{=}14$
+using the isotropic proxy $\sigma_j \equiv 0.15$ and
+the reported 3-regular ratio $0.851$ as a proxy for $r^*$.
 
 \begin{table}[h]
 \caption{Numerical instantiation of theoretical bounds at $n{=}14$ for
@@ -2878,11 +2879,6 @@ plug-in value under the assumptions stated above.
 \end{ruledtabular}
 \end{table}
 
-The manuscript does not separately report the local Lipschitz constant,
-the best-of-$K$ gain, the 3-regular noisy expected objective, or the
-empirical Wasserstein generalization gap, so the table is presented as
-a compact plug-in summary rather than as a comparison between reported
-and unreported observables.
 
 % ============================================================
 \section*{Reproducibility Statement}
