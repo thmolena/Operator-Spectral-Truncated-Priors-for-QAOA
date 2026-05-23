@@ -1,0 +1,7 @@
+Quantity,Bound
+Lipschitz L_G (Prop. 1),114.0
+Expected-quality lower bound,>= 0.865 C_max - 41.89
+Best-of-K gap (K=3),<= 20.70
+Volume ratio,4.72e-04
+Expected noisy lower bound (eps=0.01),>= 0.855 C_max - 44.68
+Generalization gap,<= 7.12

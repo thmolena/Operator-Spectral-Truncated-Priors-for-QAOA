@@ -1,0 +1,17 @@
+name: uq-qaoa-artifact
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - pandas
+  - pyyaml
+  - networkx
+  - matplotlib
+  - scikit-learn
+  - pytest
+  - cmake
+  - make
+  - cxx-compiler
+  - pip

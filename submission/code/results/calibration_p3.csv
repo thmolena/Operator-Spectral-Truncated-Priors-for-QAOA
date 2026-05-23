@@ -1,0 +1,3 @@
+p,dim,n,graph_family,graph_seed,score,predicted_confidence,observed_success,mean_variance,best_objective_proxy
+3,6,8,er,42,72.45122557013187,9.357622968840175e-14,0.0,0.0625,9.422708768421266
+3,6,8,er,123,96.30416537423682,9.357622968840175e-14,0.0,0.0625,11.20746198584046

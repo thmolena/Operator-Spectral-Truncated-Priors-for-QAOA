@@ -1,0 +1,2 @@
+timestamp,git_commit,compiler,compiler_version,compiler_flags,os,cpu_model,ram_gb,n,p,dim,batch_size,threads,backend,deterministic_reduction,ms_total,ms_per_query,queries_per_second,speedup_vs_one_thread,parallel_efficiency,memory_bytes,phase_ms,mixer_ms,expectation_ms,reduction_ms,allocation_ms,max_abs_error_vs_python
+2026-05-19T18:52:51Z,unknown,"clang 17.0.0 (clang-1700.6.4.2)",,"-O3 -std=c++20 -pthread",macOS,unknown,unknown,8,7,14,4,2,std_thread,true,0.117666,0.0294165,33994.5,,,4096,0.017875,0.015417,0.000417,0.000417,0.002667,

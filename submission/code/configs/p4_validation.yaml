@@ -1,0 +1,21 @@
+qaoa_depth: 4
+theta_layout: blocked
+dtype: complex128
+random_seed: 44
+backend: python_statevector
+query_budget:
+  mode: curve
+  curve_extra_values: [5, 10, 18, 64, 100]
+  anchors_count: 5
+  signed_coordinate_sweeps: 1
+graphs:
+  families: [er, random_regular, watts_strogatz, barabasi_albert]
+  sizes: [8, 10, 12, 14]
+  primary_test_n: 14
+  test_instances_per_family: 24
+  seeds: [42, 123, 456, 789, 1024, 2048]
+methods:
+  include: [random_search, tqa, tqa_refine, posterior_anchors_only, uq_qaoa_full, uq_no_covariance, uq_no_refinement, uq_no_tqa_prior, uq_no_knn_prior]
+finite_shots: {enabled: false, shots: [512, 1024, 4096], reevaluate_final_exact: true}
+hpc: {cpp_enabled: true, openmp_enabled: optional, thread_counts: [1,2,4,8], batch_sizes: [18,33,64], benchmark_ns: [14,16], benchmark_ps: [4], deterministic_reduction: true}
+outputs: {root: code/results, save_traces: true, save_figures: true, save_tables: true}

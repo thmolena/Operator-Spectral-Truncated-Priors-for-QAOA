@@ -1,0 +1,11 @@
+{
+  "extraPaths": [
+    "submission/code/python",
+    "submission/code/scripts"
+  ],
+  "include": [
+    "submission/code/python",
+    "submission/code/scripts",
+    "submission/code/tests"
+  ]
+}

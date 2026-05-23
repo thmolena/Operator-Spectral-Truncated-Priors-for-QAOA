@@ -1,0 +1,7 @@
+n,p,Q,mean_query_ms,std_query_ms,total_ms,statevec_bytes,peak_rss_bytes,threads,compiler,flags
+8,2,18,0.0102501,0.00177422,0.184792,4096,1949696,1,Apple Clang 17.0.0,-O3 -std=c++20 -march=native -pthread
+10,2,18,0.0446203,0.00297914,0.803667,16384,1982464,1,Apple Clang 17.0.0,-O3 -std=c++20 -march=native -pthread
+12,2,18,0.199627,0.0172385,3.59375,65536,2097152,1,Apple Clang 17.0.0,-O3 -std=c++20 -march=native -pthread
+14,2,18,0.837114,0.0322295,15.0686,262144,2457600,1,Apple Clang 17.0.0,-O3 -std=c++20 -march=native -pthread
+16,2,18,3.69474,0.0913452,66.5062,1048576,4308992,1,Apple Clang 17.0.0,-O3 -std=c++20 -march=native -pthread
+18,2,18,15.9691,0.364211,287.444,4194304,9060352,1,Apple Clang 17.0.0,-O3 -std=c++20 -march=native -pthread

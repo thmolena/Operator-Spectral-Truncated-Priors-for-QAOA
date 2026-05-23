@@ -1,0 +1,9 @@
+Variant,Ratio,Delta_vs_full
+GIN mean only,0.682,-0.183
+Mean + fixed box,0.657,-0.209
+Mean + isotropic $\sigma^2 I$,0.750,-0.115
+No local (k-NN) prior,0.645,-0.221
+No global prior,0.711,-0.155
+No coord. probes,0.772,-0.094
+No sequential refine,0.863,-0.002
+Full UQ-QAOA,0.865,+0.000

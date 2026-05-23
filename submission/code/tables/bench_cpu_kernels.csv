@@ -1,0 +1,3 @@
+kernel,ms_per_layer,note
+phase,0.1821,"element-wise exp(-ig*C(z))*psi, bandwidth-bound"
+mixer,0.4736,strided 2x2 rotations over 14 qubits

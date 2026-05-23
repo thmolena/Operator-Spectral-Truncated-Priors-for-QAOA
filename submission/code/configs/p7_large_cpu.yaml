@@ -1,0 +1,11 @@
+qaoa_depth: 7
+theta_layout: blocked
+dtype: complex128
+random_seed: 470
+backend: cpp_statevector_cpu
+query_budget: {mode: dimension_scaled, anchors_count: 5, signed_coordinate_sweeps: 1}
+graphs: {families: [er], sizes: [18,20,22,24], primary_test_n: 20, test_instances_per_family: 4, seeds: [42,123,456,789]}
+methods: {include: [tqa, tqa_refine, uq_qaoa_full]}
+finite_shots: {enabled: false, shots: [1024], reevaluate_final_exact: true}
+hpc: {cpp_enabled: true, openmp_enabled: optional, thread_counts: [1,2,4,6,8,10], batch_sizes: [33,64,128], benchmark_ns: [18,20,22,24], benchmark_ps: [7], deterministic_reduction: true}
+outputs: {root: code/results, save_traces: true, save_figures: true, save_tables: true}
