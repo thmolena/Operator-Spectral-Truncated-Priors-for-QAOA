@@ -795,7 +795,7 @@ single source, confirming that the approximation is operationally effective.
 
 \paragraph{Why the $k$-NN prior dominates some ablations.}
 Removing the $k$-NN prior produces the largest isolated performance drop
-($0.865 \to 0.644$, \cref{tab:ablation}).  This occurs because the $k$-NN
+($0.865 \to 0.645$, \cref{tab:ablation}).  This occurs because the $k$-NN
 median provides a strong anchor in structured graph families: when the test
 graph has nearby training neighbors, their optimized parameters are already
 near-optimal.  The GIN alone cannot reliably recover this information without
@@ -1670,7 +1670,7 @@ neighbourhood.  Failure cases include overconfident miscoverage,
 distribution shift from structurally novel test graphs, missed cross-layer
 correlations at deeper QAOA, and shot-noise masking of small ratio
 differences at larger $n$.  Removing the $k$-NN prior drops performance to
-$0.644$ (\cref{tab:ablation}), showing reliance on the nonparametric
+$0.645$ (\cref{tab:ablation}), showing reliance on the nonparametric
 component.
 
 \paragraph{Diagonal covariance.}
@@ -1728,10 +1728,6 @@ and reproducibility contract for future optimized backends.  Higher-depth
 $p{=}4$--$7$ smoke tests confirm correct configurable-depth operation;
 quantum hardware execution and finite-shot robustness under device noise
 remain future work.
-
-\ack{The author thanks colleagues and manuscript readers for feedback on early
-drafts and for discussions about reproducibility, optimization, and scientific
-software design.}
 
 \section*{Data availability}
 

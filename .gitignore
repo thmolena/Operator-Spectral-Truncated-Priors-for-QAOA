@@ -31,3 +31,6 @@ website/*.log
 *.a
 submission/code/cpp/build/
 submission/code/cpp/**/build/
+
+# Editor-local config (may contain machine paths / private project refs)
+.vscode/

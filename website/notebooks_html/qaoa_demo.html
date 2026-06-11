@@ -8815,9 +8815,9 @@ Independent rotations $R_X(2\beta)$ on each qubit — $O(n)$ operations.</p>
   Forward head width   : 4 outputs (γ1, γ2, β1, β2)
   Dense-adj fallback   : True
 
-  ! Legacy checkpoint detected at: /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/model.pt
+  ! Legacy checkpoint detected at: ./model.pt
     Incompatible depth-1 head weights were skipped during loading.
-  ✓ Loaded compatible weights from: /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/model.pt
+  ✓ Loaded compatible weights from: ./model.pt
 
 Execution preflight
   - Environment check passed (qaoa active).
@@ -9662,10 +9662,10 @@ Execution preflight
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Local reduced-panel cache override ready.
-  Preferred panel cache : /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/data/prostate_top32_variance_panel.csv.gz
-  Preferred meta cache  : /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/data/prostate_top32_variance_panel_meta.json
-  Legacy fallback panel : /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/data/prostate_top10_variance_panel.csv.gz
-  Legacy fallback meta  : /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/data/prostate_top10_variance_panel_meta.json
+  Preferred panel cache : ./data/prostate_top32_variance_panel.csv.gz
+  Preferred meta cache  : ./data/prostate_top32_variance_panel_meta.json
+  Legacy fallback panel : ./data/prostate_top10_variance_panel.csv.gz
+  Legacy fallback meta  : ./data/prostate_top10_variance_panel_meta.json
 </pre>
 </div>
 </div>
@@ -9753,7 +9753,7 @@ Execution preflight
   Dataset name              : prostate
   Source matrix shape       : 102 samples x 12600 genes
   Working execution panel   : 16 cached/selected genes used to build graphs
-  Data access mode          : Loaded cached reduced transcriptomic panel from /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/data/prostate_top32_variance_panel.csv.gz (using top 16 genes from cached top 32)
+  Data access mode          : Loaded cached reduced transcriptomic panel from ./data/prostate_top32_variance_panel.csv.gz (using top 16 genes from cached top 32)
   Class balance             : {'1': 52, '2': 50}
   Selected genes            : 16
   Adaptation graphs         : 24  (seed range 200..223)
@@ -11133,8 +11133,8 @@ Interpretation
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Saved figure assets -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/notebooks/figures/qaoa_demo_benchmark_overview.png
-                     -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/website/notebooks_html/figures/qaoa_demo_benchmark_overview.png
+<pre>Saved figure assets -&gt; ./notebooks/figures/qaoa_demo_benchmark_overview.png
+                     -&gt; ./website/notebooks_html/figures/qaoa_demo_benchmark_overview.png
 </pre>
 </div>
 </div>
@@ -11896,8 +11896,8 @@ Interpretation
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Saved figure assets -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/notebooks/figures/qaoa_demo_graph_conditioned_initialization.png
-                     -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/website/notebooks_html/figures/qaoa_demo_graph_conditioned_initialization.png
+<pre>Saved figure assets -&gt; ./notebooks/figures/qaoa_demo_graph_conditioned_initialization.png
+                     -&gt; ./website/notebooks_html/figures/qaoa_demo_graph_conditioned_initialization.png
 </pre>
 </div>
 </div>
@@ -12062,8 +12062,8 @@ Interpretation
   best value in that slice. This means the high-quality basin is concentrated rather
   than diffuse, which explains why a learned warm-start is valuable even before any
   local classical refinement is applied.
-Saved figure assets -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/notebooks/figures/qaoa_demo_landscape_geometry.png
-                     -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/website/notebooks_html/figures/qaoa_demo_landscape_geometry.png
+Saved figure assets -&gt; ./notebooks/figures/qaoa_demo_landscape_geometry.png
+                     -&gt; ./website/notebooks_html/figures/qaoa_demo_landscape_geometry.png
 </pre>
 </div>
 </div>
@@ -12209,8 +12209,8 @@ $$</p>
   high-cut bitstrings above the uniform baseline.
   The concentration ratio of 3.92x means the optimized state assigns
   substantially more probability mass to strong partitions than a random guess.
-Saved figure assets -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/notebooks/figures/qaoa_demo_state_concentration.png
-                     -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/website/notebooks_html/figures/qaoa_demo_state_concentration.png
+Saved figure assets -&gt; ./notebooks/figures/qaoa_demo_state_concentration.png
+                     -&gt; ./website/notebooks_html/figures/qaoa_demo_state_concentration.png
 </pre>
 </div>
 </div>
@@ -12483,8 +12483,8 @@ Interpretation
   model has essentially closed the quality gap relative to direct classical search.
   The remaining speed-quality tradeoff is therefore far more favorable than in the
   original transfer-only notebook.
-Saved figure assets -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/notebooks/figures/qaoa_demo_residual_regret.png
-                     -&gt; /Users/mohuyn/Library/CloudStorage/OneDrive-SAS/Documents/GitHub/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/website/notebooks_html/figures/qaoa_demo_residual_regret.png
+Saved figure assets -&gt; ./notebooks/figures/qaoa_demo_residual_regret.png
+                     -&gt; ./website/notebooks_html/figures/qaoa_demo_residual_regret.png
 </pre>
 </div>
 </div>
