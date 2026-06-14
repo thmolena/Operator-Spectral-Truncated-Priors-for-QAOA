@@ -1,0 +1,2 @@
+n_instances,uq_mean,tqa_mean,paired_advantage,paired_CI95_lo,paired_CI95_hi,wins,ties,losses,win_rate
+48,0.8623,0.8503,+0.0120,+0.0080,+0.0163,39,0,9,0.812

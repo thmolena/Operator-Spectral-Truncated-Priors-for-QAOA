@@ -15,7 +15,10 @@ This produces:
   code/figures/fig02_efficiency_adjusted.pdf
   code/figures/fig03_heldout_quality.pdf
   code/figures/fig04_trust_region_concept.pdf
+  code/figures/fig05_expanded_benchmark.pdf
   code/tables/table01_computational_efficiency.csv
+  code/tables/table01_expanded.csv
+  code/tables/paired_uq_vs_tqa_expanded.csv
   code/tables/table02_bound_verification.csv
   code/tables/table03_ablation.csv
 
@@ -36,7 +39,9 @@ from fig01_statevector_grid import gen_fig01
 from fig02_efficiency_adjusted import gen_fig02
 from fig03_heldout_quality import gen_fig03
 from fig04_trust_region_concept import gen_fig04
+from fig05_expanded_benchmark import gen_fig05
 from table01_computational_efficiency import gen_table01
+from table01_expanded import main as gen_table01_expanded
 from table02_bound_verification import gen_table02
 from table03_ablation import gen_table03
 from trace_evaluations import gen_trace
@@ -58,6 +63,8 @@ if __name__ == "__main__":
         ("Fig 03: Held-out quality check", gen_fig03),
         ("Fig 04: Trust-region concept (C4)", gen_fig04),
         ("Table 01: Computational efficiency", gen_table01),
+        ("Table 01-expanded: 48-instance replication", gen_table01_expanded),
+        ("Fig 05: Expanded 48-instance benchmark", gen_fig05),
         ("Table 02: Bound verification", gen_table02),
         ("Table 03: Ablation study", gen_table03),
         ("Trace: Per-candidate evaluation log", gen_trace),

@@ -109,9 +109,11 @@ refinement.  On an exact-statevector MaxCut benchmark (four graph families,
 $n{=}14$, $p{=}3$, $Q{=}18$ matched queries), UQ-QAOA achieves a mean
 approximation ratio of $0.865$ versus $0.853$ for the strongest single-source
 baseline (paired advantage $+0.012$, bootstrap 95\,\% CI
-$[+0.003,+0.024]$).  The method is best-or-tied-best at every intermediate
-query budget.  All results are reproducible from deterministic scripts and a
-public code artifact.
+$[+0.003,+0.024]$).  A six-times larger held-out replication ($48$ instances)
+preserves the $+0.012$ advantage with a threefold tighter interval
+$[+0.008,+0.016]$ and a $39/48$ win rate.  The method is best-or-tied-best at
+every intermediate query budget.  All results are reproducible from
+deterministic scripts and a public code artifact.
 \end{abstract}
 
 % ============================================================
@@ -1084,6 +1086,73 @@ $\{\theta^*(G_{M+1})\in\mathcal{T}_{\hat q_{1-\alpha}}(G_{M+1})\}$ by the
 definition of the Mahalanobis nonconformity score, which proves the stated
 coverage. \hfill$\square$
 
+\subsection{Optimality and geometry of posterior fusion}
+\label{sec:fusion_theory}
+
+The fusion rule of \cref{alg:gctr} is not only a convenient closed form. Under the
+modeling idealization introduced in \cref{sec:method}---that the four sources behave
+as independent unbiased Gaussian estimates of a common target---it is the unique
+minimum-variance linear combiner, and the resulting trust region is provably no wider
+than that of any single source on any coordinate. These two statements isolate exactly
+what the fusion contributes (variance reduction and region contraction) and where its
+assumptions enter, complementing the honest caveat in \cref{sec:method} that the
+sources are not strictly independent in practice.
+
+\begin{proposition}[Optimality of precision-weighted fusion]
+\label{prop:fusion_opt}
+Suppose each source $s\in\mathcal{S}=\{\mathrm{GIN}',\mathrm{loc},\mathrm{glob},
+\mathrm{TQA}\}$ reports $\mu_s=\theta^\star+\varepsilon_s$ with
+$\varepsilon_s\sim\mathcal{N}(0,\Sigma_s)$ mutually independent and $\Sigma_s\succ0$.
+Among all linear unbiased estimators $\widehat\theta=\sum_{s}W_s\mu_s$ subject to
+$\sum_{s}W_s=I$, the precision-weighted choice
+$W_s^\star=\Sigma_{\mathrm{post}}\Sigma_s^{-1}$ with
+$\Sigma_{\mathrm{post}}=\big(\sum_{s}\Sigma_s^{-1}\big)^{-1}$ uniquely minimizes the
+error covariance in the Loewner order and attains
+$\operatorname{Cov}(\widehat\theta-\theta^\star)=\Sigma_{\mathrm{post}}$. It coincides
+with the maximum-likelihood estimate and, under a flat prior, with the posterior mean
+$\mu_{\mathrm{post}}$ constructed in \cref{alg:gctr}.
+\end{proposition}
+
+\begin{lemma}[Per-coordinate trust-region contraction]
+\label{lem:contraction}
+For the diagonal sources used in \cref{alg:gctr}, the fused diagonal obeys
+$[\Sigma_{\mathrm{post}}]_{jj}\le\min_{s\in\mathcal{S}}[\Sigma_s]_{jj}$ for every
+coordinate $j$. Hence the posterior step size
+$\delta_j=\mathrm{clip}\!\big(0.5\sqrt{[\Sigma_{\mathrm{post}}]_{jj}},0.05,0.30\big)$
+never exceeds the unclipped step size induced by the most confident single source, and
+the fused axis-aligned trust region is contained in that of every source.
+\end{lemma}
+
+\begin{proof}
+Diagonality gives
+$[\Sigma_{\mathrm{post}}^{-1}]_{jj}=\sum_{s}[\Sigma_s]_{jj}^{-1}
+\ge\max_{s}[\Sigma_s]_{jj}^{-1}=\big(\min_{s}[\Sigma_s]_{jj}\big)^{-1}$,
+because every summand is strictly positive; inverting yields
+$[\Sigma_{\mathrm{post}}]_{jj}\le\min_{s}[\Sigma_s]_{jj}$. Monotonicity of
+$x\mapsto0.5\sqrt{x}$ and of the clip map gives the step-size statement, and the
+coordinate-wise variance inequality is precisely containment of the diagonal
+ellipsoid. \hfill$\square$
+\end{proof}
+
+\begin{proposition}[Convergence of greedy coordinate refinement]
+\label{prop:coord_convergence}
+Let $f_G$ be bounded, as it is for finite $n$ with $0\le f_G\le|E|$. The incumbent
+value sequence $\widehat y_t$ produced by Phase~2c (\cref{alg:gctr2}) is nondecreasing
+and converges. Whenever a full coordinate pass produces no strict improvement, the
+incumbent is a $\delta$-approximate coordinate-wise local maximum, i.e.\
+$f_G(\widehat\theta)\ge f_G\big(\Pi_{\Theta_p}(\widehat\theta\pm\delta_j e_j)\big)$ for
+all $j$. In the unbounded-budget process the step-halving rule drives $\delta\to0$, so
+every limit point is coordinate-wise stationary wherever $f_G$ is differentiable.
+\end{proposition}
+
+The proofs of \cref{prop:fusion_opt,prop:coord_convergence} are given in
+\cref{app:fusion_opt}. Together with \cref{thm:bestofk}, these results explain the
+mechanism quantitatively: \cref{prop:fusion_opt} certifies that fusion produces the
+tightest unbiased center, \cref{lem:contraction} certifies that it never enlarges the
+per-coordinate search scale, and the smaller scale enters the near-optimal-mass bound
+of \cref{thm:bestofk} through the $\det(\Sigma_\phi+\lambda I)$ volume term, reducing the
+queries needed to reach the $\varepsilon$-optimal set.
+
 \subsection{Empirical bound verification}
 \label{sec:bound_verification}
 
@@ -1287,6 +1356,10 @@ in the \texttt{code/} directory.  The mapping is:
 \begin{itemize}[nosep]
     \item \cref{tab:efficiency}: \path{trace_evaluations.py}, which writes
     \path{tables/table01_computational_efficiency.csv}
+    \item \cref{tab:expanded} and \cref{fig:expanded}: \path{table01_expanded.py}
+    (writes \path{tables/table01_expanded.csv} and
+    \path{tables/paired_uq_vs_tqa_expanded.csv}) and
+    \path{fig05_expanded_benchmark.py}
     \item \cref{tab:ablation}: \path{table03_ablation.py}
     \item \cref{fig:statevector_grid}: \path{fig01_statevector_grid.py}
     \item \cref{fig:query_curve}: \path{scripts/make_figures.py}, which reads
@@ -1564,6 +1637,70 @@ $8192$ & $8.2863$ & $0.0201$ & $8.2921$ \\
 \end{tabular}
 \end{table}
 
+\subsection{Experiment 7: Higher-powered benchmark on a $6\times$ larger held-out set}
+\label{sec:expanded}
+
+The controlled benchmark of \cref{tab:efficiency} uses eight held-out instances,
+which yields a wide paired confidence interval. To test whether the headline
+advantage survives at higher statistical power, we replicate the identical protocol
+($n{=}14$, $p{=}3$, $Q{=}18$, exact statevector, four families) on a six-times larger
+held-out set of $48$ instances (twelve per family). The additional test graphs use the
+same deterministic seeding namespace as the original benchmark, which is disjoint from
+the training-library namespace, so the larger set adds new held-out graphs without
+train/test leakage. The expanded run is generated by \path{table01_expanded.py} and is
+fully reproducible.
+
+\Cref{tab:expanded} reports the result. The mean approximation ratios are essentially
+unchanged from the eight-instance benchmark---\UQQAOA{} $0.862$ versus TQA $0.850$---and
+the paired advantage holds at $+0.012$, but the $95\%$ bootstrap confidence interval
+contracts from $[+0.003,+0.024]$ (eight instances) to $[+0.008,+0.016]$ (forty-eight
+instances), roughly a threefold reduction in width that places the interval well away
+from zero. \UQQAOA{} wins on $39$ of $48$ instances ($81.2\%$); the nine losses are
+small and visible in \cref{fig:expanded}(b). All black-box optimizers (DE $0.715$,
+BO $0.707$, CMA-ES $0.724$, multi-seed random $0.724$, Nelder--Mead $0.682$) again
+remain below every transfer-based method, consistent with \cref{tab:efficiency}. This
+higher-powered replication is the strongest single piece of evidence that the
+covariance-calibrated posterior policy extracts more value from a fixed query budget
+than the strongest physics-informed baseline.
+
+% Generated by code/table01_expanded.py
+\begin{table}[t]
+\caption{Higher-powered replication of the primary benchmark on $48$ held-out
+instances (twelve per family) at $n{=}14$, $p{=}3$, $Q{=}18$. Confidence intervals are
+$10{,}000$-resample bootstraps over the $48$ instances; $\Delta$ is the paired mean
+versus TQA. The advantage of \cref{tab:efficiency} is preserved with a substantially
+tighter interval.
+\label{tab:expanded}}
+\scriptsize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+    Method & Ratio $\uparrow$ & CI$_{95}$ & $\Delta$ vs.\ TQA & $Q$ \\
+    \midrule
+        Random           & $0.733$ & $[0.718,\,0.748]$ & $-0.117$ & $18$ \\
+        Heuristic        & $0.609$ & $[0.591,\,0.627]$ & $-0.241$ & $18$ \\
+        k-NN             & $0.636$ & $[0.621,\,0.651]$ & $-0.215$ & $18$ \\
+        TQA              & $0.850$ & $[0.841,\,0.860]$ & $+0.000$ & $18$ \\
+        GNN point        & $0.635$ & $[0.617,\,0.654]$ & $-0.215$ & $18$ \\
+    \UQQAOA{} (ours)
+    & $\mathbf{0.862}$ & $[0.854,\,0.871]$ & $\mathbf{+0.012}$ & $18$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Generated by code/fig05_expanded_benchmark.py
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{code/figures/fig05_expanded_benchmark.pdf}
+    \caption{Higher-powered benchmark on $48$ held-out instances
+    ($n{=}14$, $p{=}3$, $Q{=}18$). \textbf{(a)}~Mean approximation ratio with $95\%$
+    bootstrap confidence intervals for all methods, ranked; \UQQAOA{} (\textbf{★}) is
+    highest at $0.862$, above the strongest baseline TQA at $0.850$. \textbf{(b)}~The
+    per-instance paired advantage $\UQQAOA{}-\mathrm{TQA}$ across all $48$ instances,
+    sorted; the dashed line marks the bootstrap mean $+0.0120$ and the shaded band its
+    $95\%$ CI $[+0.008,+0.016]$. The advantage is positive on $39$ of $48$ instances.
+    \label{fig:expanded}}
+\end{figure*}
+
 \subsection{Summary of empirical evidence}
 
 \begin{enumerate}
@@ -1571,6 +1708,11 @@ $8192$ & $8.2863$ & $0.0201$ & $8.2921$ \\
     highest mean best-of-budget ratio in the controlled trace-level comparison
     ($0.865$, CI $[0.839,0.892]$) vs.\ TQA ($0.853$) under matched
     $Q{=}18$ (\cref{tab:efficiency}).
+
+    \item \textbf{Higher-powered replication:} On a $6\times$ larger held-out set
+    of $48$ instances, the advantage holds at $+0.012$ with a threefold tighter
+    bootstrap CI $[+0.008,+0.016]$ and a $39/48$ win rate
+    (\cref{tab:expanded,fig:expanded}).
 
     \item \textbf{Query curves:} The proposed curve is best-or-tied-best at
     every tested query budget and strictly highest after the learned
@@ -1718,9 +1860,11 @@ On a controlled exact-statevector MaxCut benchmark ($n{=}14$, $p{=}3$,
 $Q{=}18$), UQ-QAOA achieves $0.865$ mean approximation ratio versus $0.853$
 for TQA (paired advantage $+0.012$, bootstrap 95\,\% CI
 $[+0.003, +0.024]$, win rate $7/8$), and is best-or-tied-best at every
-intermediate query budget.  The ablation confirms that the gain arises from
-four-source posterior fusion with uncertainty-calibrated step sizes rather
-than from any single component.
+intermediate query budget.  A six-times larger held-out replication on $48$
+instances preserves the $+0.012$ advantage with a threefold tighter confidence
+interval $[+0.008, +0.016]$ and a $39/48$ win rate.  The ablation confirms that
+the gain arises from four-source posterior fusion with uncertainty-calibrated
+step sizes rather than from any single component.
 
 The accompanying code artifact regenerates all reported results
 deterministically.  A C++20 reference interface defines the kernel boundaries
@@ -1857,6 +2001,52 @@ coordinate, which is the intended behaviour: confident sources pull harder.
 The calibration floor $\Sigma'_{\mathrm{GIN}}=\max(\Sigma_{\mathrm{GIN}},
 \Sigma_{\mathrm{loc}})$ prevents an overconfident neural head from collapsing
 the posterior onto an unreliable mean before any objective query is spent.
+
+\subsection{Optimality of fusion and convergence of refinement}
+\label{app:fusion_opt}
+
+\paragraph{Proof of \cref{prop:fusion_opt}.}
+Write $\widehat\theta=\sum_s W_s\mu_s$. Unbiasedness for every $\theta^\star$ requires
+$\mathbb{E}[\widehat\theta]=\big(\sum_s W_s\big)\theta^\star=\theta^\star$, i.e.\
+$\sum_s W_s=I$. Under this constraint the error is
+$\widehat\theta-\theta^\star=\sum_s W_s\varepsilon_s$, and by mutual independence its
+covariance is $\sum_s W_s\Sigma_s W_s^{\mathsf T}$. Let
+$W_s^\star=\Sigma_{\mathrm{post}}\Sigma_s^{-1}$ with
+$\Sigma_{\mathrm{post}}=(\sum_s\Sigma_s^{-1})^{-1}$; note $\sum_s W_s^\star
+=\Sigma_{\mathrm{post}}\sum_s\Sigma_s^{-1}=I$, so $W^\star$ is feasible, and
+$\sum_s W_s^\star\Sigma_s W_s^{\star\mathsf T}
+=\Sigma_{\mathrm{post}}\big(\sum_s\Sigma_s^{-1}\big)\Sigma_{\mathrm{post}}
+=\Sigma_{\mathrm{post}}$. Any feasible competitor is $W_s=W_s^\star+D_s$ with
+$\sum_s D_s=0$. Because the cross term vanishes,
+\begin{equation}
+\sum_s W_s^\star\Sigma_s D_s^{\mathsf T}
+=\Sigma_{\mathrm{post}}\sum_s\Sigma_s^{-1}\Sigma_s D_s^{\mathsf T}
+=\Sigma_{\mathrm{post}}\Big(\sum_s D_s\Big)^{\mathsf T}=0,
+\end{equation}
+the error covariance separates as
+$\sum_s W_s\Sigma_s W_s^{\mathsf T}
+=\Sigma_{\mathrm{post}}+\sum_s D_s\Sigma_s D_s^{\mathsf T}
+\succeq\Sigma_{\mathrm{post}}$,
+with equality iff every $D_s=0$ (as $\Sigma_s\succ0$). This is Loewner-minimality and
+uniqueness. Finally, the negative log-likelihood of the independent Gaussian model is
+$\tfrac12\sum_s(\mu_s-\theta)^{\mathsf T}\Sigma_s^{-1}(\mu_s-\theta)$ up to constants;
+its stationarity condition $\big(\sum_s\Sigma_s^{-1}\big)\theta=\sum_s\Sigma_s^{-1}\mu_s$
+gives $\widehat\theta_{\mathrm{ML}}=\Sigma_{\mathrm{post}}\sum_s\Sigma_s^{-1}\mu_s
+=\mu_{\mathrm{post}}$, which under a flat prior is also the posterior mean. \hfill$\square$
+
+\paragraph{Proof of \cref{prop:coord_convergence}.}
+The incumbent is updated only on a strict improvement $y>\widehat y$, so
+$\{\widehat y_t\}$ is nondecreasing; since $0\le f_G\le|E|$ it is bounded above, and a
+bounded monotone sequence converges. Suppose a full pass over $j=1,\dots,2p$ and signs
+$\eta\in\{+1,-1\}$ yields no strict improvement. Then for every coordinate $j$,
+$f_G\big(\Pi_{\Theta_p}(\widehat\theta\pm\delta_j e_j)\big)\le\widehat y
+=f_G(\widehat\theta)$, which is the definition of a $\delta$-approximate
+coordinate-wise local maximum at the current step vector. Each nonimproving pass halves
+$\delta$, so in the unbounded-budget process $\delta\to0$; if $\widehat\theta^\infty$ is
+a limit point at which $f_G$ is differentiable, the inequality
+$f_G(\widehat\theta^\infty)\ge f_G(\widehat\theta^\infty\pm\delta e_j)$ in the limit
+$\delta\downarrow0$ forces $\partial f_G/\partial\theta_j=0$ for all interior
+coordinates $j$, i.e.\ coordinate-wise stationarity. \hfill$\square$
 
 \subsection{Lipschitz lower bound on near-optimal mass}
 \label{app:lipschitz}
@@ -2140,6 +2330,8 @@ continuous-integration checks.  Every script is seeded by the global seed
 Manuscript element & Generating script \\
 \midrule
 \cref{tab:efficiency} (main benchmark) & \path{trace_evaluations.py} \\
+\cref{tab:expanded} ($48$-instance replication) & \path{table01_expanded.py} \\
+\cref{fig:expanded} (expanded benchmark) & \path{fig05_expanded_benchmark.py} \\
 \cref{tab:ablation} (ablation) & \path{table03_ablation.py} \\
 \cref{tab:bounds} (bound verification) & \path{table02_bound_verification.py} \\
 \cref{tab:higher_depth} ($p{=}6,7$) & \path{scripts} / \path{results/summary_p*.csv} \\
