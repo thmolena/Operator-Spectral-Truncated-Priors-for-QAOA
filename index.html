@@ -814,10 +814,10 @@
       <section class="cover block-shell lead-feature">
         <div class="block-inner">
           <div>
-            <p class="cover-kicker">UQ-QAOA &bull; Prepared for Nature Machine Intelligence</p>
+            <p class="cover-kicker">UQ-QAOA &bull; Opening entry in a unified graph-learning program for quantum computation &bull; Prepared for Nature Machine Intelligence</p>
             <h1>Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search</h1>
             <p class="subtitle">
-              For low-depth implementations of the Quantum Approximate Optimization Algorithm (QAOA), the dominant practical cost is the number of objective-function <em>queries</em> required to identify useful variational parameters. <strong>UQ-QAOA</strong> converts graph-conditioned predictive uncertainty into an operational trust-region geometry: a Graph Isomorphism Network predicts a diagonal Gaussian over the QAOA angles, and four information sources&mdash;neural predictor, local $k$-nearest-neighbour prior, global population prior, and a trotterized quantum-annealing schedule&mdash;are fused by precision-weighted combination to obtain a posterior mean and anisotropic step sizes for sequential coordinate refinement. This page presents the method in full mathematical detail, the reproducible exact-statevector evidence that supports it, and a companion graph-learning program spanning quantum optimization and biomedical inference.
+              For low-depth implementations of the Quantum Approximate Optimization Algorithm (QAOA), the binding cost is the number of objective-function <em>queries</em> required to locate useful variational parameters rather than circuit depth. <strong>UQ-QAOA</strong> recasts graph-conditioned predictive uncertainty as the geometry of the search itself: a Graph Isomorphism Network emits a diagonal Gaussian over the QAOA angles, and four estimators&mdash;the neural predictor, a local $k$-nearest-neighbour prior, a global population prior, and a trotterized quantum-annealing schedule&mdash;combine through precision weighting into a posterior mean and anisotropic step sizes that drive sequential coordinate refinement. Predicted covariance thereby allocates the query budget, contracting search where the model is confident and widening it where calibration warrants. This page presents the method in full, the conformal and best-of-$K$ guarantees that bound its behaviour, the reproducible exact-statevector evidence and C++20 reference backend that support it, and a companion graph-learning program carrying the same graph-in, calibrated-parameterization-out interface to two public biomedical datasets &mdash; prostate-cancer transcriptomics and cardiotocography screening &mdash; reported as supporting evidence alongside, rather than within, the submitted UQ-QAOA manuscript.
             </p>
             <div class="pill-row" aria-label="Topic tags">
               <span class="pill">Variational quantum algorithms</span>
@@ -826,6 +826,9 @@
               <span class="pill">Trust-region optimization</span>
               <span class="pill">Conformal prediction</span>
             </div>
+            <p class="meta-note" style="margin-top:18px;">
+              Molena Huynh &middot; North Carolina State University &middot; <a href="mailto:molena.huynh@jmp.com">molena.huynh@jmp.com</a>
+            </p>
           </div>
 
           <div class="cover-meta grid-3" aria-label="Headline metrics">
@@ -855,7 +858,7 @@
             <div class="section-intro body-copy">
               <h2>QAOA, MaxCut, and the objective-query model</h2>
               <p>
-                Let $G=(V,E)$ be an undirected graph with $n=|V|$ vertices. The MaxCut cost Hamiltonian, the depth-$p$ QAOA state with mixer $H_M=\sum_i X_i$, and the exact objective are
+                The setting is depth-$p$ QAOA for MaxCut, with cost measured in objective queries rather than wall-clock time. Let $G=(V,E)$ be an undirected graph with $n=|V|$ vertices. The MaxCut cost Hamiltonian, the depth-$p$ QAOA state with mixer $H_M=\sum_i X_i$, and the exact objective are
               </p>
             </div>
           </div>
@@ -867,14 +870,14 @@
           </div>
 
           <p class="body-copy">
-            The parameter vector is $\theta=(\gamma_1,\dots,\gamma_p,\beta_1,\dots,\beta_p)\in\Theta_p=[0,2\pi)^p\times[0,\pi)^p$, and the approximation ratio is $r_G(\theta)=f_G(\theta)/C_G^\star$ with optimal cut value $C_G^\star$. Cost is measured in objective queries $Q=\#\{\theta\text{ evaluated}\}$, and performance is reported through the <em>best-so-far query curve</em>
+            The parameter vector is $\theta=(\gamma_1,\dots,\gamma_p,\beta_1,\dots,\beta_p)\in\Theta_p=[0,2\pi)^p\times[0,\pi)^p$, and the approximation ratio is $r_G(\theta)=f_G(\theta)/C_G^\star$ with optimal cut value $C_G^\star$. Each evaluation of $f_G$ dominates the budget, so cost is counted in objective queries $Q=\#\{\theta\text{ evaluated}\}$, and a method is judged by the rate at which quality rises with that budget&mdash;the <em>best-so-far query curve</em>
           </p>
           <div class="eq">
             $$Q\;\longmapsto\;\max_{1\le q\le Q} r_G(\theta_q),\qquad\text{with}\qquad
             Q_G(\tau)=\min\{q: r_G^{\mathrm{best}}(q)\ge\tau\}.$$
           </div>
           <p class="body-copy">
-            In a measurement-limited regime, a method that reaches comparable quality with substantially fewer queries can be more useful than one that attains a marginally higher objective only after many more evaluations. UQ-QAOA is designed for precisely this regime.
+            In a measurement-limited regime, attaining comparable quality in substantially fewer queries outweighs a marginal objective gain obtained after many additional evaluations. UQ-QAOA addresses precisely this trade-off: it expends queries to confirm the strongest physics prior, then concentrates the remainder within a calibrated region of parameter space.
           </p>
         </div>
       </section>
@@ -886,7 +889,7 @@
             <div class="section-intro body-copy">
               <h2>Graph-conditioned Gaussian prediction and four-source posterior fusion</h2>
               <p>
-                A Graph Isomorphism Network (GIN) with learnable $\varepsilon$, layer-normalized two-layer MLPs, and spectral positional features performs message passing, then a Gaussian head emits a mean and a diagonal covariance over QAOA angles:
+                The method comprises two stages: a graph encoder that predicts a calibrated distribution over angles, and a fusion step that reconciles that prediction with three priors. A Graph Isomorphism Network (GIN) with learnable $\varepsilon$, layer-normalized two-layer MLPs, and spectral positional features performs message passing; a Gaussian head then emits a mean and a diagonal covariance over the QAOA angles:
               </p>
             </div>
           </div>
@@ -896,20 +899,20 @@
             q_\phi(\theta\mid G)=\mathcal N\!\big(\mu_\phi(G),\,\Sigma_\phi(G)\big).$$
           </div>
           <p class="body-copy">
-            The covariance head is $\Sigma_\phi(G)=\mathrm{diag}\big(\sigma_{\min}^2+\mathrm{softplus}(a_\phi(G))\big)$, trained by Gaussian negative log-likelihood with weight decay. The NLL simultaneously rewards accurate prediction and penalizes covariance inflation:
+            The covariance head is $\Sigma_\phi(G)=\mathrm{diag}\big(\sigma_{\min}^2+\mathrm{softplus}(a_\phi(G))\big)$, trained by Gaussian negative log-likelihood with weight decay. The NLL couples accuracy to calibration: the first term penalizes prediction error scaled by the model's reported confidence, the second penalizes inflated confidence, so wide variance is favoured only where the predicted mean is uncertain.
           </p>
           <div class="eq">
             $$\mathcal L_{\mathrm{nll}}(\phi)=\frac{1}{2N}\sum_{i=1}^{N}\sum_{k=1}^{2p}\left[\frac{\big(\theta^{\mathrm{ref}}_{i,k}-\mu_{\phi,k}(G_i)\big)^2}{\sigma_{\phi,k}^2(G_i)}+\log\sigma_{\phi,k}^2(G_i)\right]+\eta_{\mathrm{wd}}\lVert\phi\rVert_2^2.$$
           </div>
           <p class="body-copy">
-            Four independent sources&mdash;the GIN predictor, a local $k{=}5$ nearest-neighbour prior, a global population prior, and a trotterized quantum-annealing (TQA) prior&mdash;are fused by precision-weighted (inverse-variance) combination, where sources with smaller predicted variance exert stronger pull on the joint estimate:
+            Four sources&mdash;the GIN predictor, a local $k{=}5$ nearest-neighbour prior, a global population prior, and a trotterized quantum-annealing (TQA) prior&mdash;are then combined by precision weighting (inverse-variance fusion). Each source contributes to the joint estimate in proportion to its certainty, so a confident prior dominates where reliable and defers where uncertain:
           </p>
           <div class="eq">
             $$\Sigma_{\mathrm{post}}^{-1}={\Sigma_{\mathrm{GIN}}'}^{-1}+\Sigma_{\mathrm{loc}}^{-1}+\Sigma_{\mathrm{glob}}^{-1}+\Sigma_{\mathrm{TQA}}^{-1},\qquad
             \mu_{\mathrm{post}}=\Sigma_{\mathrm{post}}\sum_{s}\Sigma_s^{-1}\mu_s,$$
           </div>
           <p class="body-copy">
-            with $\Sigma_{\mathrm{GIN}}'=\max(\Sigma_{\mathrm{GIN}},\Sigma_{\mathrm{loc}})$ a calibration floor. The posterior covariance then defines the anisotropic <strong>trust region</strong> and the per-coordinate step sizes that govern refinement:
+            where $\Sigma_{\mathrm{GIN}}'=\max(\Sigma_{\mathrm{GIN}},\Sigma_{\mathrm{loc}})$ imposes a calibration floor that bounds the certainty the neural source may assert. The posterior covariance then fixes the shape of the anisotropic <strong>trust region</strong> and the per-coordinate step sizes that govern refinement: well-determined directions are searched tightly, uncertain ones broadly.
           </p>
           <div class="eq">
             $$\mathcal T_{\phi,\rho}(G)=\Big\{\theta\in\Theta_p:(\theta-\mu_\phi)^{\!\top}(\Sigma_\phi+\lambda I)^{-1}(\theta-\mu_\phi)\le\rho^2\Big\},\qquad
@@ -920,17 +923,17 @@
             <article class="card">
               <div class="tag">Phase 0 / 2a</div>
               <h3>TQA safety prefix</h3>
-              <p>A short trotterized-annealing prefix makes the policy dominance-preserving: at each early query count, UQ-QAOA has evaluated the same TQA candidate available to the strongest physics-informed baseline before spending budget on learned geometry.</p>
+              <p>A short trotterized-annealing prefix renders the policy dominance-preserving against its strongest competitor: before any budget is spent on learned geometry, UQ-QAOA has evaluated the same TQA candidate available to the strongest physics-informed baseline, so its query curve cannot fall below TQA at low query counts.</p>
             </article>
             <article class="card">
               <div class="tag">Phase 1 / 2b</div>
               <h3>Posterior-anchor evaluation</h3>
-              <p>Nonduplicate deterministic anchors&mdash;TQA, posterior mean, GIN mean, local $k$-NN median, and global median&mdash;are evaluated, and the empirical best becomes the refinement incumbent.</p>
+              <p>A fixed set of deterministic, nonduplicate anchors&mdash;TQA, posterior mean, GIN mean, local $k$-NN median, and global median&mdash;is evaluated, and the empirical best seeds refinement. Each information source thereby receives one direct test before iterative search begins.</p>
             </article>
             <article class="card">
               <div class="tag">Phase 2c</div>
               <h3>Greedy coordinate refinement</h3>
-              <p>For each dimension $j$ the search probes $\pm\delta_j$ from the incumbent, updating on strict improvement; a full pass without improvement halves the step sizes (trust-region contraction).</p>
+              <p>From the incumbent, the search probes $\pm\delta_j$ along each dimension $j$ and accepts only strict improvements; a full pass without progress halves every step size, contracting the trust region toward the optimum.</p>
             </article>
           </div>
         </div>
@@ -943,7 +946,7 @@
             <div class="section-intro body-copy">
               <h2>When a learned trust region saves queries</h2>
               <p>
-                The guarantees are deliberately <em>local and conditional</em>: they formalize when a calibrated, compact trust region reduces objective queries, not global QAOA optimality.
+                The guarantees are explicitly <em>local and conditional</em>. They establish when a calibrated, compact trust region lowers the number of objective queries, and they remain agnostic about global QAOA optimality. Two results anchor the method&mdash;a best-of-$K$ bound on the number of in-region samples that suffice, and a finite-sample coverage guarantee that the region contains the target.
               </p>
             </div>
           </div>
@@ -957,7 +960,7 @@
               $$\Pr\!\big[f_G(\widehat\theta_K)<f_G^{\mathcal T}-\varepsilon\big]\le\big(1-\alpha_G(\varepsilon)\big)^K,$$
             </div>
             <p>
-              so $K\ge\log(1/\delta)/\alpha_G(\varepsilon)$ suffices for $f_G(\widehat\theta_K)\ge f_G^{\mathcal T}-\varepsilon$ with probability at least $1-\delta$. For an ellipsoidal region with locally $L_G$-Lipschitz objective, $\alpha_G(\varepsilon)\gtrsim (\varepsilon/L_G)^d\big/\big(\rho^d\det(\Sigma_\phi+\lambda I)^{1/2}\big)$ &mdash; a tighter calibrated covariance and smaller radius reduce the number of candidates needed to hit the near-optimal set.
+              Hence $K\ge\log(1/\delta)/\alpha_G(\varepsilon)$ samples suffice to reach $f_G(\widehat\theta_K)\ge f_G^{\mathcal T}-\varepsilon$ with probability at least $1-\delta$. For an ellipsoidal region with a locally $L_G$-Lipschitz objective, $\alpha_G(\varepsilon)\gtrsim (\varepsilon/L_G)^d\big/\big(\rho^d\det(\Sigma_\phi+\lambda I)^{1/2}\big)$, which makes the central claim explicit: the better-calibrated and tighter the covariance, the fewer candidates are needed to hit the near-optimal set. Calibration is what buys the query savings.
             </p>
           </div>
 
@@ -969,7 +972,7 @@
             <div class="eq" style="background:#ffffff;">
               $$\mathbb P\!\big[\theta^*(G_{M+1})\in\mathcal T_{\hat q_{1-\alpha}}(G_{M+1})\big]\ge 1-\alpha.$$
             </div>
-            <p>A finite-shot extension adds a sub-Gaussian union bound over $S$-shot estimates, separating parameter-query cost from shot cost.</p>
+            <p>A finite-shot extension layers a sub-Gaussian union bound over $S$-shot estimates onto this guarantee, cleanly separating the cost of choosing parameters from the cost of estimating each objective by sampling.</p>
           </div>
         </div>
       </section>
@@ -981,7 +984,7 @@
             <div class="section-intro">
               <h2>Controlled exact-statevector benchmark</h2>
               <p>
-                All methods receive the same $Q{=}18$ exact-statevector objective queries on the same eight held-out instances (two per family: Erd&#337;s&ndash;R&eacute;nyi, 3-regular, Barab&aacute;si&ndash;Albert, Watts&ndash;Strogatz) at $n{=}14$, $p{=}3$. The global seed is fixed at 260424803.
+                The benchmark holds the query budget constant so that differences reflect search efficiency alone. Every method receives the same $Q{=}18$ exact-statevector objective queries on the same eight held-out instances (two per family: Erd&#337;s&ndash;R&eacute;nyi, 3-regular, Barab&aacute;si&ndash;Albert, Watts&ndash;Strogatz) at $n{=}14$, $p{=}3$, with the global seed fixed at 260424803 for exact reproduction.
               </p>
             </div>
           </div>
@@ -1002,10 +1005,10 @@
             </table>
           </div>
           <p class="table-note">
-            UQ-QAOA is best-or-tied-best at every intermediate query budget and wins on 7 of 8 instances. Differential evolution, GP-EI Bayesian optimization, CMA-ES, multi-seed random, and Nelder&ndash;Mead all reach $\le 0.754$ under $Q{=}18$.
+            UQ-QAOA is best-or-tied-best at every intermediate query budget and wins on 7 of 8 instances. Established black-box optimizers do not close the gap under this budget: differential evolution, GP-EI Bayesian optimization, CMA-ES, multi-seed random, and Nelder&ndash;Mead all reach $\le 0.754$ under $Q{=}18$.
           </p>
           <p class="table-note">
-            <strong>Higher-powered replication.</strong> On a 6&times; larger held-out set of <strong>48 instances</strong> (12 per family, identical protocol), the advantage holds at <strong>+0.012</strong> &mdash; UQ-QAOA 0.862 vs. TQA 0.850 &mdash; with a threefold tighter 95% bootstrap CI <strong>[+0.008, +0.016]</strong> and a <strong>39/48</strong> win rate, placing the interval well away from zero.
+            <strong>Higher-powered replication.</strong> The effect is stable, not an artifact of a small test set. On a 6&times; larger held-out set of <strong>48 instances</strong> (12 per family, identical protocol), the advantage is unchanged at <strong>+0.012</strong> &mdash; UQ-QAOA 0.862 vs. TQA 0.850 &mdash; while the 95% bootstrap CI tightens threefold to <strong>[+0.008, +0.016]</strong> and the win rate reaches <strong>39/48</strong>, placing the interval well clear of zero.
           </p>
 
           <div class="table-wrap" style="margin-top:22px;">
@@ -1026,7 +1029,7 @@
             </table>
           </div>
           <p class="table-note">
-            The largest isolated loss comes from removing the local $k$-NN prior, confirming that the gain arises from the full distributional fusion rather than any single component.
+            No single component carries the result. The largest isolated loss follows from removing the local $k$-NN prior, and every ablation degrades performance, evidence that the gain comes from the full distributional fusion rather than any one part of it.
           </p>
 
           <div class="demo-links">
@@ -1043,11 +1046,11 @@
             <div class="section-intro body-copy">
               <h2>Transcriptomic QAOA initialization and biomedical CTG screening</h2>
           <p>
-            The same graph-conditioned interface&mdash;graph in, calibrated parameterization out&mdash;is exercised in two domains. A graph-conditioned GNN predicts depth-2 QAOA angles for weighted MaxCut on prostate transcriptomic co-expression graphs, reaching near-direct-search quality at a single fast forward pass; a residual clinical GCN on a cardiotocography patient-similarity graph performs node-level pathologic-risk prediction. The studies below report held-out evidence and its bounded operating regime.
+            The same interface&mdash;graph in, calibrated parameterization out&mdash;is tested across two domains to probe its generality. In the first, a graph-conditioned GNN predicts depth-2 QAOA angles for weighted MaxCut on prostate transcriptomic co-expression graphs, recovering near-direct-search quality in a single forward pass. In the second, a residual clinical GCN performs node-level pathologic-risk prediction on a cardiotocography patient-similarity graph. The studies below report held-out evidence and state the bounded regime in which it holds.
           </p>
           <div class="lead-callout">
             <p>
-              Taken together, the companion results identify structure-aware parameter prediction as a viable route to transferring fixed-depth quantum optimization across related weighted instances, and show the same formulation transfers to a biomedical graph setting&mdash;within a bounded operating regime that the work makes explicit.
+              Together, these results make two points. Structure-aware parameter prediction is a viable route to transferring fixed-depth quantum optimization across related weighted instances, and the same formulation carries over to a biomedical graph-inference task&mdash;both within a bounded operating regime that the work states rather than obscures.
             </p>
           </div>
         </div>
@@ -1061,7 +1064,7 @@
             <div class="section-intro">
               <h2>Comparative Results</h2>
               <p>
-                The comparison is framed against direct depth-2 search and simpler learned initializers. The strongest claim is retention of the downstream MaxCut objective on held-out transcriptomic graphs with sharply lower inference-time cost.
+                The companion predictor is measured against the right ceiling&mdash;direct depth-2 search&mdash;rather than against weak initializers that would flatter it. The central finding is that it retains essentially all of the downstream MaxCut objective on held-out transcriptomic graphs while cutting inference-time cost by orders of magnitude.
               </p>
             </div>
           </div>
@@ -1099,7 +1102,7 @@
         </table>
           </div>
           <p class="table-note">
-        The page is limited to the strongest fixed-depth findings in the executed repository outputs. It does not present these results as evidence for asymptotic quantum speedup.
+        Scope is deliberately constrained: the page reports only the strongest fixed-depth findings actually produced by the executed repository, and it does not advance these results as evidence of asymptotic quantum speedup.
           </p>
 
           <div class="grid-3">
@@ -1107,27 +1110,27 @@
           <div class="tag">Primary Benchmark</div>
           <h3>Near-direct-search quality on held-out graphs</h3>
           <p>
-            On the real transcriptomic graph family, the graph-conditioned predictor nearly matches direct multi-start optimization while avoiding per-instance outer-loop search at inference time.
+            On the real transcriptomic graph family, the graph-conditioned predictor nearly matches direct multi-start optimization yet requires no per-instance outer-loop search at inference time.
           </p>
-          <div class="metric-line">Operational reading: repeated fixed-depth QAOA evaluation becomes materially cheaper without sacrificing the downstream objective in the tested regime.</div>
+          <div class="metric-line">Operational reading: in the tested regime, repeated fixed-depth QAOA evaluation becomes materially cheaper at no measurable cost to the downstream objective.</div>
         </article>
 
         <article class="card">
           <div class="tag">Noise Evaluation</div>
           <h3>Stable degradation under executed noise</h3>
           <p>
-            The learned initializer degrades smoothly rather than abruptly across the tested depolarizing-noise grid, staying close to the classical-search reference even at eta = 0.05.
+            Across the tested depolarizing-noise grid the learned initializer degrades gracefully rather than collapsing, tracking the classical-search reference even at eta = 0.05.
           </p>
-          <div class="metric-line">Operational reading: the fixed-depth learned initialization remains usable when idealized statevector assumptions are relaxed in the executed noise study.</div>
+          <div class="metric-line">Operational reading: the fixed-depth learned initialization stays usable once the idealized statevector assumptions are relaxed in the executed noise study.</div>
         </article>
 
         <article class="card">
           <div class="tag">Secondary Branch</div>
           <h3>Graph-to-decision framing extends to CTG</h3>
           <p>
-            The biomedical branch supports methodological breadth, but it remains secondary to the transcriptomic QAOA result and should be read as supporting evidence rather than the headline physics claim.
+            The biomedical branch demonstrates the breadth of the approach, but it remains secondary to the transcriptomic QAOA result and should be read as supporting evidence, not the headline physics claim.
           </p>
-          <div class="metric-line">Operational reading: the repository demonstrates a reusable graph-learning interface across optimization and biomedical decision settings.</div>
+          <div class="metric-line">Operational reading: the repository establishes one reusable graph-learning interface that serves both optimization and biomedical decision settings.</div>
         </article>
           </div>
         </div>
@@ -1139,20 +1142,20 @@
             <div class="section-intro body-copy">
               <h2>From Benchmarks to Applications</h2>
               <p>
-                The benchmark is organized around repeated fixed-depth optimization on structured weighted graphs. In that setting, a better model is not merely numerically stronger. It changes how often full parameter search must be rerun, how cheaply related instances can be evaluated, and how confidently objective retention can be audited.
+                The benchmark centers on repeated fixed-depth optimization over structured weighted graphs, where the value of a better model is operational rather than cosmetic. It determines how often full parameter search must be rerun, how cheaply related instances can be evaluated, and how confidently objective retention can be audited.
               </p>
             </div>
           </div>
 
           <ul class="application-list">
         <li>
-          In transcriptomic optimization, the graph-conditioned result means new related biological graphs can be evaluated without rerunning expensive multi-start search from scratch, while staying close to the direct-search objective.
+          <strong>Transcriptomic optimization.</strong> New related biological graphs can be evaluated without rerunning costly multi-start search from scratch, while staying close to the direct-search objective.
         </li>
         <li>
-          In noise-aware evaluation, the supporting result means the learned initialization remains close to the classical-search baseline as local depolarizing noise increases across the tested grid.
+          <strong>Noise-aware evaluation.</strong> The learned initialization remains close to the classical-search baseline as local depolarizing noise increases across the tested grid, so it does not depend on idealized hardware.
         </li>
         <li>
-          In the secondary CTG setting, the same structural learning approach can be reused for cohort-level decision tasks, even though that branch is not the primary contribution of the page.
+          <strong>Secondary CTG setting.</strong> The same structural learning approach can be reused for cohort-level decision tasks, even though this branch is not the primary contribution of the page.
         </li>
           </ul>
         </div>
@@ -1165,7 +1168,7 @@
             <div class="section-intro">
               <h2>Supporting figures</h2>
               <p>
-                Each figure is rendered at full on-page size and can be opened at native resolution. Every panel is tied to the corresponding notebook or manuscript evidence.
+                Each figure is shown at full on-page size and can be opened at native resolution, and every panel traces back to the notebook or manuscript evidence that produced it.
               </p>
             </div>
           </div>
@@ -1178,7 +1181,7 @@
           <figcaption class="figure-copy">
             <h3>QAOA landscape geometry</h3>
             <p>
-              This figure shows that the visible depth-2 high-value basin is narrow rather than diffuse, which is why good learned warm starts materially reduce the local search burden.
+              The depth-2 high-value basin is narrow rather than diffuse. This is precisely why an accurate learned warm start pays off: it lands the search inside a small target that random or generic initialization would rarely hit.
             </p>
             <div class="figure-actions">
               <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_landscape_geometry.png" data-figure-title="QAOA landscape geometry">Open full resolution</button>
@@ -1195,7 +1198,7 @@
           <figcaption class="figure-copy">
             <h3>Held-out benchmark overview</h3>
             <p>
-              The main comparison is anchored to direct search rather than to weak initializers, which is the relevant operational ceiling for learned fixed-depth QAOA initialization.
+              The comparison is anchored to direct search, the true operational ceiling for learned fixed-depth QAOA initialization, rather than to weak initializers that would overstate the margin.
             </p>
             <div class="figure-actions">
               <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_benchmark_overview.png" data-figure-title="Held-out benchmark overview">Open full resolution</button>
@@ -1214,7 +1217,7 @@
           <figcaption class="figure-copy">
             <h3>QAOA state concentration</h3>
             <p>
-              Parameter concentration across graph families shows that the learned initializer remains stable and transfers across held-out transcriptomic graphs.
+              Parameter concentration across graph families indicates that the learned initializer is stable and transfers to held-out transcriptomic graphs rather than overfitting a single topology.
             </p>
             <div class="figure-actions">
               <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_state_concentration.png" data-figure-title="QAOA state concentration">Open full resolution</button>
@@ -1231,7 +1234,7 @@
           <figcaption class="figure-copy">
             <h3>Held-out CTG evaluation</h3>
             <p>
-              The biomedical branch is shown through its strongest quantitative evaluation figure rather than a topology overview, foregrounding measured evidence over schematic description.
+              The biomedical branch is represented by its strongest quantitative evaluation rather than a topology schematic, foregrounding measured held-out evidence over descriptive illustration.
             </p>
             <div class="figure-actions">
               <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/bio_demo_heldout_evaluation.png" data-figure-title="Held-out CTG evaluation">Open full resolution</button>
@@ -1251,7 +1254,7 @@
             <div class="section-intro body-copy">
               <h2>Live in-page QAOA demonstration</h2>
               <p>
-                The demonstration is embedded directly in this page. Generate a graph, predict QAOA angles, and inspect the returned parameters without navigating away. When the API is unavailable, the demonstration falls back to an in-browser exact depth-1 simulation with local refinement.
+                The workflow runs in the page itself: generate a graph, predict its QAOA angles, and inspect the returned parameters without leaving this view. If the API is unavailable, the demonstration falls back to an in-browser exact depth-1 simulation with local refinement, so it remains functional offline.
               </p>
             </div>
           </div>
@@ -1262,7 +1265,7 @@
             <div class="tag">Interactive Controls</div>
             <h3>Generate a weighted graph and predict QAOA parameters</h3>
             <p class="demo-copy">
-              This is a compact live view of the repository demonstration, intended for rapid inspection of the graph-conditioned parameterization workflow rather than full benchmark reproduction.
+              This is a compact live view of the repository demonstration, meant for quick inspection of the graph-conditioned parameterization workflow rather than full benchmark reproduction.
             </p>
           </div>
 
@@ -1330,7 +1333,7 @@
             <div class="section-intro">
               <h2>Reproducible materials</h2>
               <p>
-                The lead UQ-QAOA manuscript and its deterministic code artifact, together with the companion-project manuscript, rendered notebooks, and repository sources. Everything is reproducible from fixed seeds.
+                Every claim on this page is backed by released material: the lead UQ-QAOA manuscript and its deterministic code artifact, the companion-project manuscript, the rendered notebooks, and the full repository source. All of it reproduces from fixed seeds.
               </p>
             </div>
           </div>
@@ -1399,7 +1402,10 @@
         </div>
       </section>
 
-      <footer class="block-shell"></footer>
+      <footer class="block-shell">
+        Molena Huynh &middot; North Carolina State University &middot; <a href="mailto:molena.huynh@jmp.com">molena.huynh@jmp.com</a><br />
+        UQ-QAOA &mdash; Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search &middot; Prepared for Nature Machine Intelligence.
+      </footer>
     </div>
   </main>
 

@@ -24,10 +24,10 @@
 
   <style>
     :root {
-      --paper:#0f1117; --panel:#1a1d29; --panel2:#151824; --line:#2a2f42;
-      --ink:#dbe2ee; --muted:#8a96ad; --faint:#5b6678;
-      --heading:#e7ecf6; --accent:#7c9cf0; --accent2:#34d399; --accent3:#fbbf24;
-      --link:#93b4ff; --mono:'JetBrains Mono',monospace;
+      --paper:#ffffff; --panel:#f7f9fc; --panel2:#eef2f7; --line:#d8dee8;
+      --ink:#16263a; --muted:#4f5f73; --faint:#6b7688;
+      --heading:#10151c; --accent:#1d3f6e; --accent2:#1f5c47; --accent3:#8a6700;
+      --link:#1a4e8a; --mono:'JetBrains Mono',monospace;
     }
     *{box-sizing:border-box;}
     body{
@@ -47,23 +47,23 @@
     h1,h2,h3,h4{font-family:"Source Serif 4",serif;color:var(--heading);line-height:1.2;margin:0;}
     h1{font-size:clamp(1.9rem,4vw,2.9rem);margin:12px 0 14px;letter-spacing:-.01em;}
     h2{font-size:clamp(1.35rem,2.2vw,1.85rem);margin-bottom:14px;}
-    h3{font-size:1.16rem;margin-bottom:9px;color:#cdd7ea;}
-    h4{font-size:.96rem;margin-bottom:6px;color:#bcc8de;}
+    h3{font-size:1.16rem;margin-bottom:9px;color:var(--ink);}
+    h4{font-size:.96rem;margin-bottom:6px;color:var(--ink);}
     p{margin:0 0 12px;}
 
     .hero{padding:26px 0 30px;border-bottom:1px solid var(--line);}
-    .lead{font-size:1.08rem;color:#c2cce0;max-width:80ch;}
+    .lead{font-size:1.08rem;color:var(--ink);max-width:80ch;}
     .authorline{margin-top:14px;color:var(--muted);font-size:.95rem;}
     .authorline code{font-family:var(--mono);color:var(--accent2);}
 
     .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
-    .badge{font-size:.74rem;font-weight:600;color:#bcd0ff;background:rgba(99,102,241,.13);
-      border:1px solid rgba(99,102,241,.35);border-radius:999px;padding:.25rem .8rem;}
-    .badge.green{color:#9ff0cf;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);}
+    .badge{font-size:.74rem;font-weight:600;color:var(--accent);background:rgba(99,102,241,.10);
+      border:1px solid rgba(99,102,241,.30);border-radius:999px;padding:.25rem .8rem;}
+    .badge.green{color:var(--accent2);background:rgba(31,92,71,.08);border-color:rgba(31,92,71,.28);}
 
     .actions{margin-top:22px;display:flex;flex-wrap:wrap;gap:12px;}
     .button{display:inline-flex;align-items:center;min-height:42px;padding:0 18px;border-radius:6px;
-      border:1px solid var(--line);color:#cdd7ea;font-weight:600;font-size:.92rem;background:var(--panel2);}
+      border:1px solid var(--line);color:var(--ink);font-weight:600;font-size:.92rem;background:var(--panel2);}
     .button:hover{text-decoration:none;border-color:var(--accent);}
     .button.primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-color:transparent;color:#fff;}
 
@@ -79,14 +79,14 @@
     .muted{color:var(--muted);}
     .small{font-size:.9rem;}
 
-    .eqbox{background:#0b0d14;border:1px solid var(--line);border-radius:10px;
+    .eqbox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
       padding:8px 16px;margin:14px 0;overflow-x:auto;}
     .eqlabel{display:block;font-size:.78rem;color:var(--faint);font-family:var(--mono);
       text-transform:uppercase;letter-spacing:.06em;margin:14px 0 2px;}
 
     ol.claims{margin:6px 0 0;padding-left:1.3rem;}
     ol.claims li{margin-bottom:14px;}
-    ol.claims b{color:#cdd7ea;}
+    ol.claims b{color:var(--ink);}
 
     table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.93rem;}
     th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
@@ -94,21 +94,21 @@
       background:rgba(124,156,240,.07);}
     td.num,th.num{text-align:right;font-family:var(--mono);font-size:.86rem;}
     tr.ours td{background:rgba(52,211,153,.07);}
-    tr.ours td:first-child{font-weight:700;color:#9ff0cf;}
+    tr.ours td:first-child{font-weight:700;color:var(--accent2);}
     .pos{color:var(--accent2);font-weight:700;}
-    .neg{color:#f2a3a3;}
+    .neg{color:#c0392b;}
     caption{caption-side:bottom;text-align:left;color:var(--faint);font-size:.8rem;margin-top:8px;}
 
     .thm{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);
       border-radius:8px;padding:14px 18px;margin:14px 0;}
-    .thm .name{font-weight:700;color:#cdd7ea;font-family:"Source Serif 4",serif;}
+    .thm .name{font-weight:700;color:var(--ink);font-family:"Source Serif 4",serif;}
     .thm .interp{margin-top:8px;color:var(--muted);font-size:.92rem;border-top:1px dashed var(--line);padding-top:8px;}
 
     .callout{margin-top:16px;padding:14px 18px;border-left:3px solid var(--accent3);
-      background:rgba(251,191,36,.05);color:#d6c69a;font-size:.92rem;border-radius:0 8px 8px 0;}
+      background:rgba(251,191,36,.08);color:var(--ink);font-size:.92rem;border-radius:0 8px 8px 0;}
 
     code.inline,.mono{font-family:var(--mono);font-size:.85em;color:var(--accent2);}
-    pre.code{font-family:var(--mono);font-size:.8rem;color:#bcd0ff;background:#0b0d14;
+    pre.code{font-family:var(--mono);font-size:.8rem;color:#1b2330;background:#eef2f7;
       border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.7;}
     pre.code .cm{color:var(--faint);}
 
@@ -134,7 +134,7 @@
     .rrow .k{color:var(--muted);}
     .rrow .v{font-family:var(--mono);color:var(--accent);}
     .rrow.hl .v{color:var(--accent2);font-weight:600;}
-    canvas{display:block;width:100%;height:auto;background:#0b0d14;border:1px solid var(--line);border-radius:10px;}
+    canvas{display:block;width:100%;height:auto;background:#ffffff;border:1px solid var(--line);border-radius:10px;}
     .canvas-cap{font-size:.78rem;color:var(--faint);margin-top:8px;}
     .demo-note{font-size:.82rem;color:var(--faint);margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
 
@@ -163,14 +163,16 @@
       <div class="kicker">UQ-QAOA</div>
       <h1>Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search</h1>
       <p class="lead">
-        For low-depth implementations of the Quantum Approximate Optimization Algorithm, the number of
-        objective-function queries needed to locate useful variational parameters is the dominant practical cost.
-        UQ-QAOA converts graph-conditioned predictive uncertainty into an operational trust-region geometry:
-        a Graph Isomorphism Network predicts a diagonal Gaussian over QAOA angles, and four information
-        sources are fused by precision-weighted combination into a posterior mean and anisotropic step sizes
-        for sequential coordinate refinement.
+        At low circuit depth, the cost of running the Quantum Approximate Optimization Algorithm is dominated not by
+        wall-clock time but by the number of objective-function queries spent locating useful variational parameters.
+        UQ-QAOA reframes predictive uncertainty as the controller of that search: a Graph Isomorphism Network maps a
+        problem graph to a Gaussian over QAOA angles, and the predicted covariance &mdash; rather than the mean alone &mdash;
+        is repurposed as operational trust-region geometry. Four information sources are combined by a closed-form,
+        precision-weighted fusion into a posterior mean and anisotropic per-coordinate step sizes, turning a learned
+        distribution into an explicit, query-efficient policy for where to center, how widely to probe each angle, and
+        how to spend a fixed budget.
       </p>
-      <p class="authorline">Molena Huynh &middot; Correspondence <code>molena.huynh@jmp.com</code></p>
+      <p class="authorline">Molena Huynh &middot; North Carolina State University &middot; Correspondence <code>molena.huynh@jmp.com</code></p>
       <div class="badges">
         <span class="badge">MaxCut &middot; QAOA depth p=3</span>
         <span class="badge">GIN + spectral positional features</span>
@@ -191,29 +193,32 @@
       <div class="kicker">Background and Motivation</div>
       <h2>The scientific setting and the open problem</h2>
       <p class="lead" style="margin-bottom:18px;">
-        QAOA is a variational quantum algorithm for combinatorial optimization in which a parameterized
-        circuit is tuned by a classical outer loop. In near-term, measurement-limited execution, the
-        first-class resource is not wall-clock time but the <b>objective-query count</b> &mdash; the number of
-        distinct angle vectors evaluated on the quantum processor or simulator.
+        QAOA solves combinatorial optimization by tuning a parameterized quantum circuit through a classical
+        outer loop. On near-term, measurement-limited hardware, the binding constraint is not runtime but the
+        <b>objective-query count</b> &mdash; the number of distinct angle vectors that must be evaluated on the
+        processor or simulator. Every method that reduces this count without sacrificing solution quality
+        directly extends what is feasible at a given hardware cost, which makes query efficiency the central
+        figure of merit for the outer loop.
       </p>
       <div class="grid-2">
         <div class="panel">
           <h3>The resource-aware question</h3>
           <p class="muted small">
-            Given a fixed objective-query budget, can graph-conditioned uncertainty allocate those queries
-            more effectively than single-source warm starts or generic black-box optimizers? Barren plateaus
-            and noise-induced effects render gradient-based outer loops inefficient at low depth, so reducing
-            evaluations is a central algorithmic objective.
+            Under a fixed query budget, can graph-conditioned uncertainty distribute those evaluations more
+            effectively than single-source warm starts or generic black-box optimizers? The question is
+            consequential because barren plateaus and noise blunt gradient-based outer loops at low depth, so
+            the gains must come from spending fewer evaluations more intelligently rather than from cheaper
+            gradients.
           </p>
         </div>
         <div class="panel">
           <h3>The structural premise that makes learning possible</h3>
           <p class="muted small">
-            For fixed depth and bounded-degree graph families, QAOA parameters exhibit concentration and
-            transferability across related instances. A learned trust-region policy exploits this transferable
-            structure while avoiding unnecessary exploration. The novelty is not that a GNN predicts angles &mdash;
-            that capability exists &mdash; but that the predicted <em>covariance</em> is repurposed as operational
-            search geometry.
+            At fixed depth and within bounded-degree graph families, optimal QAOA angles concentrate and transfer
+            across related instances. This regularity is what a learned policy can exploit, confining search to the
+            region where good parameters are known to lie rather than exploring blindly. The advance is not that a
+            GNN predicts angles &mdash; that capability already exists &mdash; but that its predicted <em>covariance</em>,
+            ordinarily discarded as a confidence score, is reinterpreted as the search geometry itself.
           </p>
         </div>
       </div>
@@ -223,7 +228,7 @@
     <section class="sec" id="prelim">
       <div class="kicker">Mathematical Preliminaries</div>
       <h2>Formal objects and notation</h2>
-      <p class="muted">The reader should command the following objects, transcribed from the manuscript.</p>
+      <p class="muted">The following objects, transcribed verbatim from the manuscript, fix the notation used throughout.</p>
 
       <span class="eqlabel">MaxCut cost Hamiltonian on \(G=(V,E)\), \(n=|V|\)</span>
       <div class="eqbox">\[ H_C(G)=\sum_{(i,j)\in E}\frac{1-Z_iZ_j}{2}, \qquad H_M=\sum_{i=1}^{n}X_i. \]</div>
@@ -258,16 +263,18 @@
       <div class="panel">
         <p>
           Fix QAOA depth \(p\) and an objective-query budget \(Q\). For a test graph \(G\), a probabilistic
-          predictor \(h_\phi:G\mapsto(\mu_\phi(G),\Sigma_\phi(G))\) induces a Gaussian over angles and an
-          ellipsoidal trust region \(\mathcal{T}_{\phi,\rho}(G)\). The objective is the budgeted local search
+          predictor \(h_\phi:G\mapsto(\mu_\phi(G),\Sigma_\phi(G))\) emits a Gaussian over angles, which in turn
+          defines an ellipsoidal trust region \(\mathcal{T}_{\phi,\rho}(G)\). The task is then a budgeted local
+          search inside that region,
         </p>
         <div class="eqbox">\[ \max_{\theta\in\mathcal{T}_{\phi,\rho}(G)} f_G(\theta)\quad\text{using at most }Q\text{ objective queries,} \]</div>
         <p class="muted small" style="margin-bottom:0;">
-          evaluated by the query-performance curve \(Q\mapsto\max_{1\le q\le Q}r_G(\theta_q)\) and by the
-          query count \(Q_G(\tau)=\min\{q:r_G^{\mathrm{best}}(q)\ge\tau\}\) needed to reach a target ratio \(\tau\).
-          The predicted mean is the warm start; the covariance constructs the local search region and the
-          per-coordinate step sizes &mdash; converting a learned distributional object into where to center,
-          how wide to search per coordinate, and how to distribute the budget.
+          Performance is read off the query-performance curve \(Q\mapsto\max_{1\le q\le Q}r_G(\theta_q)\) and the
+          query count \(Q_G(\tau)=\min\{q:r_G^{\mathrm{best}}(q)\ge\tau\}\) required to reach a target ratio \(\tau\).
+          Within this formulation the predicted distribution plays two distinct roles: its mean supplies the warm
+          start, while its covariance supplies the geometry &mdash; fixing where to center, how wide to probe each
+          coordinate, and how to apportion the remaining budget. The learned distributional object thus becomes the
+          full search policy, not merely an initializer.
         </p>
       </div>
     </section>
@@ -277,25 +284,28 @@
       <div class="kicker">Principal Contributions</div>
       <h2>Complete claims</h2>
       <ol class="claims">
-        <li><b>Uncertainty as search geometry.</b> Graph-conditioned covariance is used not as a confidence
-          score but as the metric defining anisotropic trust-region scales and the step sizes of coordinate
-          refinement, converting a learned distribution into three operational decisions: where to center, how
-          wide to search per coordinate, and how to distribute a fixed query budget.</li>
-        <li><b>Posterior fusion of learned and physics-informed priors.</b> A GIN predictor, a local
-          \(k{=}5\)-nearest-neighbour prior, a global population prior, and a TQA prior are combined into one
-          posterior mean and diagonal covariance via an explicit, non-iterative precision-weighted formula.</li>
-        <li><b>Controlled matched- and dimension-scaled-budget evidence.</b> The main benchmark uses \(p{=}3\)
-          with matched query curves; \(p{=}4\)&ndash;7 experiments use dimension-scaled budgets \(Q_p=5+4p\).
-          All evaluation is exact-statevector on unweighted MaxCut; claims are bounded to this CPU-only evidence.</li>
-        <li><b>Fair local-search baselines and ablations.</b> TQA is run under the identical greedy
-          coordinate-refinement protocol, alongside ablations that remove covariance, shuffle covariance, remove
-          individual priors, or disable refinement, plus black-box optimizers (DE, CMA-ES, GP-EI, Nelder&ndash;Mead)
-          under the same budget.</li>
-        <li><b>Calibration and finite-shot diagnostics.</b> Because uncertainty is the central object, the work
-          reports trust-region coverage, calibration diagnostics, and finite-shot / noisy-objective sensitivity.</li>
-        <li><b>Auditable computational artifact.</b> Deterministic Python scripts generate every number; a C++20
-          reference interface records the evaluator contract, compiler settings, and kernel structure, separating
-          candidate generation from evaluator kernels for future accelerated backends.</li>
+        <li><b>Uncertainty as search geometry.</b> The graph-conditioned covariance is treated not as a confidence
+          score to be reported but as the metric that defines anisotropic trust-region scales and the per-coordinate
+          step sizes of refinement &mdash; reducing a learned distribution to three concrete decisions: where to center,
+          how wide to probe each coordinate, and how to allocate a fixed query budget.</li>
+        <li><b>Posterior fusion of learned and physics-informed priors.</b> Four heterogeneous sources &mdash; a GIN
+          predictor, a local \(k{=}5\)-nearest-neighbour prior, a global population prior, and a TQA prior &mdash; are
+          merged into a single posterior mean and diagonal covariance by one explicit, non-iterative,
+          precision-weighted formula.</li>
+        <li><b>Controlled matched- and dimension-scaled-budget evidence.</b> The primary benchmark fixes \(p{=}3\)
+          and compares methods along matched query curves; the \(p{=}4\)&ndash;7 experiments use dimension-scaled
+          budgets \(Q_p=5+4p\). Every evaluation is exact-statevector on unweighted MaxCut, and all claims are
+          scoped explicitly to this CPU-only regime.</li>
+        <li><b>Fair local-search baselines and ablations.</b> The strongest competitor, TQA, runs under the identical
+          greedy coordinate-refinement protocol, removing protocol advantage as a confound. Accompanying ablations
+          remove covariance, shuffle covariance, drop individual priors, or disable refinement, and four black-box
+          optimizers (DE, CMA-ES, GP-EI, Nelder&ndash;Mead) compete under the same budget.</li>
+        <li><b>Calibration and finite-shot diagnostics.</b> Because uncertainty is the object of study, it is held to
+          account: the work reports trust-region coverage, calibration diagnostics, and sensitivity under
+          finite-shot and noisy objectives.</li>
+        <li><b>Auditable computational artifact.</b> Deterministic Python scripts regenerate every reported number,
+          and a C++20 reference interface records the evaluator contract, compiler settings, and kernel structure,
+          cleanly separating candidate generation from evaluator kernels so future accelerated backends can drop in.</li>
       </ol>
     </section>
 
@@ -324,16 +334,17 @@
         </tbody>
       </table>
       <div class="callout">
-        The TQA schedule serves a dual role &mdash; one of four prior sources <em>and</em> an early-budget safety
-        prefix &mdash; which isolates the contribution of posterior fusion from the strongest physics-informed anchor
-        and makes the policy dominance-preserving against the TQA curve at every early query count.
+        The TQA schedule plays a deliberate dual role &mdash; it is simultaneously one of the four prior sources
+        <em>and</em> an early-budget safety prefix. This design isolates the value added by posterior fusion above the
+        strongest physics-informed anchor, and it guarantees the policy never trails the TQA curve at any early query
+        count.
       </div>
     </section>
 
     <!-- THEORY -->
     <section class="sec" id="theory">
       <div class="kicker">Theoretical Guarantees</div>
-      <h2>Key statements with one-line interpretations</h2>
+      <h2>Formal statements, each with a one-line reading</h2>
 
       <div class="thm">
         <span class="name">Theorem 1 (Exact-query best-of-\(K\) guarantee).</span>
@@ -342,8 +353,8 @@
         \(K\ge\log(1/\delta)/\alpha_G(\varepsilon)\) then with probability \(\ge1-\delta\),
         \(f_G(\widehat\theta_K)\ge f_G^{\mathcal{T}}-\varepsilon\); more precisely
         \(\Pr[f_G(\widehat\theta_K)<f_G^{\mathcal{T}}-\varepsilon]\le(1-\alpha_G(\varepsilon))^K\).
-        <div class="interp">Interpretation: a calibrated trust region helps only insofar as it concentrates
-          proposal mass on near-optimal angles; query efficiency is governed by \(\alpha_G(\varepsilon)\).</div>
+        <div class="interp">Interpretation: a calibrated trust region pays off only to the extent that it concentrates
+          proposal mass on near-optimal angles; the single quantity \(\alpha_G(\varepsilon)\) governs query efficiency.</div>
       </div>
 
       <div class="thm">
@@ -351,8 +362,8 @@
         Under sub-Gaussian shot noise of proxy variance \(\sigma_G^2/S\) with \(\sigma_G^2\le|E|^2/4\), choosing
         \(K\ge\log(2/\delta)/\alpha_G(\varepsilon/2)\) and \(S\ge 32\sigma_G^2\log(4K/\delta)/\varepsilon^2\)
         yields \(f_G(\widehat\theta_K^{\mathrm{shot}})\ge f_G^{\mathcal{T}}-\varepsilon\) w.p. \(\ge1-\delta\).
-        <div class="interp">Interpretation: parameter-query cost and shot cost separate &mdash; few queries can place
-          good candidates while many shots may be needed to compare them reliably.</div>
+        <div class="interp">Interpretation: query cost and shot cost decouple &mdash; few queries suffice to place good
+          candidates, but many shots may be needed to rank them reliably under noise.</div>
       </div>
 
       <div class="thm">
@@ -360,8 +371,8 @@
         With exchangeable validation/test instances and Mahalanobis nonconformity scores, the conformal
         radius \(\hat q_{1-\alpha}\) gives
         \(\mathbb{P}[\theta^*(G_{M+1})\in\mathcal{T}_{\hat q_{1-\alpha}}(G_{M+1})]\ge1-\alpha\).
-        <div class="interp">Interpretation: the trust-region radius admits a distribution-free finite-sample
-          coverage guarantee, available as a calibration option.</div>
+        <div class="interp">Interpretation: the trust-region radius carries a distribution-free, finite-sample
+          coverage guarantee, offered as an optional calibration mode.</div>
       </div>
 
       <div class="thm">
@@ -370,8 +381,8 @@
         independent, then among linear unbiased estimators \(\sum_s W_s\mu_s\) with \(\sum_s W_s=I\), the
         precision weights \(W_s^\star=\Sigma_{\mathrm{post}}\Sigma_s^{-1}\) uniquely minimize the error
         covariance in the Loewner order, attaining \(\Sigma_{\mathrm{post}}\).
-        <div class="interp">Interpretation: the fusion rule is the unique minimum-variance unbiased combiner
-          (and the flat-prior posterior mean), certifying the tightest unbiased center.</div>
+        <div class="interp">Interpretation: the fusion rule is provably the unique minimum-variance unbiased combiner
+          (equivalently, the flat-prior posterior mean), certifying that no unbiased estimator centers more tightly.</div>
       </div>
 
       <div class="thm">
@@ -379,8 +390,8 @@
         For diagonal sources, \([\Sigma_{\mathrm{post}}]_{jj}\le\min_s[\Sigma_s]_{jj}\) for every coordinate
         \(j\); hence the fused step size never exceeds that of the most confident single source, and the fused
         axis-aligned region is contained in every source&rsquo;s.
-        <div class="interp">Interpretation: fusion never enlarges the per-coordinate search scale &mdash; the smaller
-          volume enters Theorem 1 through \(\det(\Sigma_\phi+\lambda I)\), reducing required queries.</div>
+        <div class="interp">Interpretation: fusion can only shrink the per-coordinate search scale, never enlarge it;
+          this smaller volume enters Theorem 1 through \(\det(\Sigma_\phi+\lambda I)\) and lowers the queries required.</div>
       </div>
 
       <div class="thm">
@@ -389,8 +400,8 @@
         and converges; a pass without strict improvement yields a \(\delta\)-approximate coordinate-wise local
         maximum, and step-halving drives \(\delta\to0\) so every limit point is coordinate-wise stationary
         wherever \(f_G\) is differentiable.
-        <div class="interp">Interpretation: the refinement loop is well-posed and converges to a coordinate-wise
-          stationary incumbent under the trust-region contraction rule.</div>
+        <div class="interp">Interpretation: under the trust-region contraction rule the refinement loop is well-posed,
+          and its incumbent converges to a coordinate-wise stationary point.</div>
       </div>
 
       <table>
@@ -405,9 +416,9 @@
           <tr><td>Generalization-gap surrogate</td><td class="num">&le; 7.12</td></tr>
         </tbody>
       </table>
-      <p class="muted small" style="margin-top:8px;">The volume ratio of \(4.72\times10^{-4}\) quantifies the central mechanism:
-        the calibrated trust region restricts search to roughly 0.05% of the parameter domain while Theorem 1 certifies
-        that near-optimal mass is retained.</p>
+      <p class="muted small" style="margin-top:8px;">The volume ratio of \(4.72\times10^{-4}\) makes the central mechanism concrete:
+        the calibrated trust region confines search to roughly 0.05% of the parameter domain, yet Theorem 1 certifies
+        that near-optimal mass survives this contraction &mdash; the source of the query savings.</p>
     </section>
 
     <!-- DEMO -->
@@ -415,11 +426,11 @@
       <div class="kicker">Interactive Illustration</div>
       <h2>Precision-weighted fusion, trust-region volume, and the best-of-\(K\) bound</h2>
       <p class="muted">
-        This client-side illustration is grounded in the paper&rsquo;s governing formulae: the
+        The illustration below runs entirely in the browser on the paper&rsquo;s own governing formulae: the
         precision-weighted posterior \(\Sigma_{\mathrm{post}}^{-1}=\sum_s\Sigma_s^{-1}\) (Prop. 2, Lemma 1),
         the trust-region volume ratio, and the failure-probability bound \((1-\alpha_G(\varepsilon))^K\) of
-        Theorem&nbsp;1. Manipulate the per-source standard deviations, the radius \(\rho\), and the query
-        count \(K\) to observe the qualitative behavior the paper proves.
+        Theorem&nbsp;1. Vary the per-source standard deviations, the radius \(\rho\), and the query count \(K\),
+        and the three quantities the theory predicts move together before your eyes.
       </p>
 
       <div class="demo-wrap">
@@ -473,14 +484,14 @@
         </div>
         <noscript><p class="noscript">This illustration requires JavaScript. The governing formulae and headline results are stated in full in the sections above and in the manuscript PDF.</p></noscript>
         <div class="demo-note">
-          Model of the demo. The fused per-coordinate variance is computed exactly from
-          \(\sigma_{\mathrm{post}}^{-2}=\sum_s\sigma_s^{-2}\); the step size applies the paper&rsquo;s clip
-          \(\delta=\mathrm{clip}(0.5\,\sigma_{\mathrm{post}},0.05,0.30)\). The volume ratio uses the ellipsoid
-          volume against the domain \(\Theta_p\) for the displayed slice; the near-optimal mass \(\alpha\) is a
-          monotone surrogate increasing as the fused region contracts, illustrating the Theorem&nbsp;1 scaling
-          \(\alpha\gtrsim(\varepsilon/L_G)^d/(\rho^d\det(\Sigma+\lambda I)^{1/2})\). Absolute values are
-          illustrative; the qualitative behavior (tighter fusion &rarr; higher mass &rarr; lower failure bound at
-          fixed \(K\)) is what the theory establishes.
+          What the demo computes. The fused per-coordinate variance is exact, from
+          \(\sigma_{\mathrm{post}}^{-2}=\sum_s\sigma_s^{-2}\), and the step size applies the paper&rsquo;s clip
+          \(\delta=\mathrm{clip}(0.5\,\sigma_{\mathrm{post}},0.05,0.30)\). The volume ratio is the ellipsoid
+          volume relative to the domain \(\Theta_p\) on the displayed slice; the near-optimal mass \(\alpha\) is a
+          monotone surrogate that rises as the fused region contracts, tracking the Theorem&nbsp;1 scaling
+          \(\alpha\gtrsim(\varepsilon/L_G)^d/(\rho^d\det(\Sigma+\lambda I)^{1/2})\). The absolute values shown are
+          illustrative, not measured; what the theory establishes is the direction of the effect &mdash; tighter
+          fusion &rarr; higher mass &rarr; lower failure bound at fixed \(K\).
         </div>
       </div>
     </section>
@@ -488,7 +499,7 @@
     <!-- EMPIRICAL -->
     <section class="sec" id="empirical">
       <div class="kicker">Empirical Validation</div>
-      <h2>Headline quantitative results</h2>
+      <h2>Headline results, with effect sizes and intervals</h2>
 
       <div class="grid-2">
         <div class="panel">
@@ -505,7 +516,7 @@
               <tr class="ours"><td>UQ-QAOA (ours)</td><td class="num">0.865</td><td class="num">[0.839, 0.892]</td><td class="num pos">+0.012</td></tr>
             </tbody>
           </table>
-          <p class="muted small" style="margin-top:8px;">Highest mean best-of-budget ratio; win rate 7/8 instances (87.5%); bootstrap 95% CI on the paired advantage [+0.003, +0.024].</p>
+          <p class="muted small" style="margin-top:8px;">UQ-QAOA attains the highest mean best-of-budget ratio, wins 7/8 instances (87.5%), and shows a paired advantage whose bootstrap 95% CI [+0.003, +0.024] excludes zero.</p>
         </div>
 
         <div class="panel">
@@ -522,7 +533,7 @@
               <tr class="ours"><td>UQ-QAOA (ours)</td><td class="num">0.862</td><td class="num">[0.854, 0.871]</td><td class="num pos">+0.012</td></tr>
             </tbody>
           </table>
-          <p class="muted small" style="margin-top:8px;">Advantage preserved at +0.012 with a threefold tighter interval [+0.008, +0.016] and a 39/48 win rate.</p>
+          <p class="muted small" style="margin-top:8px;">On four times the instances the advantage holds at +0.012, the interval tightens roughly threefold to [+0.008, +0.016], and the win rate is 39/48.</p>
         </div>
       </div>
 
@@ -543,9 +554,9 @@
           </tbody>
         </table>
         <p class="muted small" style="margin-top:8px;">
-          Removing the k-NN prior produces the largest isolated drop (0.865&nbsp;&rarr;&nbsp;0.645): in structured
-          families the neighbour median supplies a near-optimal anchor that the GIN alone cannot recover. The method
-          is best-or-tied-best at every intermediate query budget.
+          The single most damaging removal is the k-NN prior (0.865&nbsp;&rarr;&nbsp;0.645): within structured families
+          the neighbour median pins down a near-optimal anchor that the GIN cannot reconstruct on its own. Across every
+          intermediate query budget the full method remains best or tied-best.
         </p>
       </div>
     </section>
@@ -553,26 +564,26 @@
     <!-- SIGNIFICANCE -->
     <section class="sec" id="significance">
       <div class="kicker">Significance and Impact</div>
-      <h2>Consequence for the field and downstream application</h2>
+      <h2>What changes for the field, and what is not claimed</h2>
       <div class="grid-2">
         <div class="panel">
           <h3>Consequence</h3>
           <p class="muted small">
-            UQ-QAOA establishes that graph-conditioned predictive uncertainty is itself a test-time
-            resource-allocation object: the learned covariance constructs the local search geometry and the
-            dimension-wise step sizes, connecting initialization quality to query-budget distribution through an
-            explicit, theoretically certified geometric mechanism. The method requires no gradient or Hessian
-            estimates from the quantum backend and maintains no per-instance GP surrogate &mdash; the query budget is
-            spent directly on objective evaluation.
+            The work reframes graph-conditioned predictive uncertainty as a test-time resource-allocation object in
+            its own right: the learned covariance builds the local search geometry and the dimension-wise step sizes,
+            joining initialization quality to budget allocation through one explicit, theoretically certified
+            mechanism. Operationally this matters because the policy never asks the quantum backend for gradients or
+            Hessians and maintains no per-instance surrogate &mdash; every query in the budget buys a direct objective
+            evaluation.
           </p>
         </div>
         <div class="panel">
           <h3>Stated limitations (kept visible)</h3>
           <ul class="muted small" style="margin:0;padding-left:1.1rem;">
-            <li>Evidence is exact-statevector, CPU-only, on unweighted MaxCut at small \(n\le18\); no hardware or quantum-advantage claims are made.</li>
-            <li>The four sources are not strictly independent (k-NN and GIN share training data); fusion is an engineering approximation, justified empirically by the ablation.</li>
-            <li>Covariance is diagonal; cross-layer angle correlations and torus topology of \(\Theta_p\) are not modeled (wrapped-normal / full-covariance extensions are future work).</li>
-            <li>At \(p{=}6,7\) with a minimal single-instance budget (Q=5) methods are tightly clustered; statistical claims at \(p&gt;3\) are explicitly not made.</li>
+            <li>All evidence is exact-statevector, CPU-only, on unweighted MaxCut at small \(n\le18\); no hardware or quantum-advantage claims are made.</li>
+            <li>The four sources are not strictly independent (k-NN and GIN share training data), so the fusion is an engineering approximation rather than an exact posterior; its value is justified empirically by the ablation.</li>
+            <li>The covariance is diagonal: cross-layer angle correlations and the torus topology of \(\Theta_p\) are not modeled, and wrapped-normal or full-covariance extensions remain future work.</li>
+            <li>At \(p{=}6,7\), where the budget is a minimal single-instance \(Q=5\), the methods are tightly clustered; no statistical claims are made at \(p&gt;3\).</li>
           </ul>
         </div>
       </div>
@@ -581,11 +592,12 @@
     <!-- REPRODUCIBILITY -->
     <section class="sec" id="repro">
       <div class="kicker">Reproducibility</div>
-      <h2>Pip-installable artifact and identical-result path</h2>
+      <h2>A pip-installable artifact that reproduces every number</h2>
       <p class="muted">
-        Every figure, table, and number derives from deterministic scripts under <code class="inline">submission/code/</code>:
-        a modular Python package (<code class="inline">python/uq_qaoa/</code>) with a <code class="inline">pyproject.toml</code>,
-        a C++20 reference statevector backend (<code class="inline">cpp/</code>), per-experiment entry points, YAML
+        Nothing in the paper is hand-entered: every figure, table, and number is emitted by deterministic scripts under
+        <code class="inline">submission/code/</code>. The artifact ships a modular Python package
+        (<code class="inline">python/uq_qaoa/</code>) with a <code class="inline">pyproject.toml</code>, a C++20
+        reference statevector backend (<code class="inline">cpp/</code>), per-experiment entry points, YAML
         configurations for depths \(p{=}3\)&ndash;7, a unit-test suite, and the end-to-end drivers
         <code class="inline">generate_all.py</code> and <code class="inline">reproduce.sh</code>.
       </p>
@@ -597,19 +609,19 @@ pip install -e code/            <span class="cm"># installs the uq_qaoa package 
 bash code/reproduce.sh smoke    <span class="cm"># one-command deterministic reproduction</span>
 python code/generate_all.py     <span class="cm"># regenerate every figure and table</span></pre>
       <p class="muted small">
-        Determinism is enforced by an explicit backend contract: fixed candidate ordering by seed and method,
-        duplicate-anchor removal before budget expenditure, modular wrapping of out-of-domain angles, exactly-once
-        budget decrement per unique evaluation, and a fixed floating-point reduction policy. Reference platform:
-        Apple M2 Pro (10-core), 16 GB; Python 3.11.7, NumPy 1.26.4, SciPy 1.12.0. The repository includes graph
-        seeds, train/test splits, raw query traces, and figure source data; a DOI-bearing archival release will
+        Determinism is not incidental but contractual: the backend fixes candidate ordering by seed and method,
+        removes duplicate anchors before any budget is spent, wraps out-of-domain angles modularly, decrements the
+        budget exactly once per unique evaluation, and pins a single floating-point reduction policy. Reference
+        platform: Apple M2 Pro (10-core), 16 GB; Python 3.11.7, NumPy 1.26.4, SciPy 1.12.0. The repository ships the
+        graph seeds, train/test splits, raw query traces, and figure source data; a DOI-bearing archival release will
         be created before final publication.
       </p>
     </section>
 
     <footer class="footer">
       <p>
-        UQ-QAOA &middot; Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search.
-        All quantitative claims trace to the manuscript at
+        UQ-QAOA &middot; Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search &middot;
+        Molena Huynh, North Carolina State University. Every quantitative claim traces to the manuscript at
         <a href="notebooks_html/main.pdf">main.pdf</a> and the artifact at
         <a href="https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/tree/main/submission" target="_blank" rel="noreferrer">submission/code</a>.
         Supporting executed notebooks: <a href="notebooks_html/quantum_ai_bio_combined.html">combined</a>,
@@ -693,56 +705,56 @@ python code/generate_all.py     <span class="cm"># regenerate every figure and t
     function render(s){
       var W = cv.width, H = cv.height;
       ctx.clearRect(0,0,W,H);
-      ctx.fillStyle = "#0b0d14"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,W,H);
 
       // ---- left: ellipse panel ----
       var LX = 30, LY = 24, LW = 300, LH = H-70;
       var ccx = LX + LW/2, ccy = LY + LH/2;
       // axes
-      ctx.strokeStyle = "#2a2f42"; ctx.lineWidth = 1; ctx.setLineDash([]);
+      ctx.strokeStyle = "#d8dee8"; ctx.lineWidth = 1; ctx.setLineDash([]);
       ctx.strokeRect(LX,LY,LW,LH);
       ctx.beginPath(); ctx.moveTo(ccx,LY); ctx.lineTo(ccx,LY+LH); ctx.moveTo(LX,ccy); ctx.lineTo(LX+LW,ccy); ctx.stroke();
-      ctx.fillStyle = "#5b6678"; ctx.font = "11px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#5b6675"; ctx.font = "11px 'JetBrains Mono', monospace";
       ctx.fillText("γ₁", LX+LW-18, ccy-6);
       ctx.fillText("β₁", ccx+6, LY+12);
 
       // scale: map a std of ~1.0 to ~ 110 px
       var sc = 110;
       var sources = [
-        {s:s.sGin, c:"#7c9cf0", n:"GIN'"},
-        {s:s.sLoc, c:"#34d399", n:"loc"},
-        {s:s.sGlob,c:"#fbbf24", n:"glob"},
-        {s:s.sTqa, c:"#f472b6", n:"TQA"}
+        {s:s.sGin, c:"#1d4ed8", n:"GIN'"},
+        {s:s.sLoc, c:"#1f8a4c", n:"loc"},
+        {s:s.sGlob,c:"#b8860b", n:"glob"},
+        {s:s.sTqa, c:"#c026a3", n:"TQA"}
       ];
       sources.forEach(function(src){
         drawEllipse(ccx,ccy, src.s*sc, src.s*sc, src.c, [4,4], 1.2);
       });
       // fused posterior (solid, green) — guaranteed inside all (Lemma 1)
-      drawEllipse(ccx,ccy, s.sPost*sc, s.sPost*sc, "#34d399", null, 2.6);
-      ctx.fillStyle = "#9ff0cf"; ctx.font = "11px 'Source Sans 3', sans-serif";
+      drawEllipse(ccx,ccy, s.sPost*sc, s.sPost*sc, "#1f8a4c", null, 2.6);
+      ctx.fillStyle = "#1f5c47"; ctx.font = "11px 'Source Sans 3', sans-serif";
       ctx.fillText("fused σpost", ccx - 30, ccy - s.sPost*sc - 6 > LY+12 ? ccy - s.sPost*sc - 6 : LY+12);
       // legend
       ctx.font = "10px 'JetBrains Mono', monospace";
       var ly = LY+LH-58;
       sources.forEach(function(src,i){
         ctx.fillStyle = src.c; ctx.fillRect(LX+8, ly+i*13, 9,9);
-        ctx.fillStyle = "#8a96ad"; ctx.fillText(src.n, LX+22, ly+i*13+8);
+        ctx.fillStyle = "#5b6675"; ctx.fillText(src.n, LX+22, ly+i*13+8);
       });
 
       // ---- right: best-of-K bound panel ----
       var RX = 360, RY = 24, RW = W-RX-24, RH = H-70;
-      ctx.strokeStyle = "#2a2f42"; ctx.lineWidth = 1; ctx.setLineDash([]);
+      ctx.strokeStyle = "#d8dee8"; ctx.lineWidth = 1; ctx.setLineDash([]);
       ctx.strokeRect(RX,RY,RW,RH);
-      ctx.fillStyle = "#8a96ad"; ctx.font = "11px 'Source Sans 3', sans-serif";
+      ctx.fillStyle = "#5b6675"; ctx.font = "11px 'Source Sans 3', sans-serif";
       ctx.fillText("(1−α)^K  vs  K", RX+8, RY+14);
       // axes ticks
-      ctx.fillStyle = "#5b6678"; ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#5b6675"; ctx.font = "9px 'JetBrains Mono', monospace";
       ctx.fillText("1.0", RX-2, RY+22); ctx.fillText("0", RX-2, RY+RH-2);
       ctx.fillText("K=60", RX+RW-30, RY+RH+12);
 
       var Kmax = 60;
       ctx.beginPath();
-      ctx.strokeStyle = "#7c9cf0"; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.strokeStyle = "#1d4ed8"; ctx.lineWidth = 2; ctx.setLineDash([]);
       for(var k=1;k<=Kmax;k++){
         var fx = RX + (k/Kmax)*RW;
         var fyv = Math.pow(1-s.alpha, k);
@@ -754,12 +766,12 @@ python code/generate_all.py     <span class="cm"># regenerate every figure and t
       var mx = RX + (s.K/Kmax)*RW;
       var myv = Math.pow(1-s.alpha, s.K);
       var my = RY + (1-myv)*RH;
-      ctx.fillStyle = "#34d399";
+      ctx.fillStyle = "#1f8a4c";
       ctx.beginPath(); ctx.arc(mx,my,5,0,2*Math.PI); ctx.fill();
-      ctx.strokeStyle = "#34d399"; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.strokeStyle = "#1f8a4c"; ctx.lineWidth=1; ctx.setLineDash([3,3]);
       ctx.beginPath(); ctx.moveTo(mx,RY); ctx.lineTo(mx,RY+RH); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#9ff0cf"; ctx.font = "10px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#1f5c47"; ctx.font = "10px 'JetBrains Mono', monospace";
       ctx.fillText("K="+s.K+"  P≤"+s.fail.toExponential(1), Math.min(mx+8, RX+RW-110), my-8);
     }
 

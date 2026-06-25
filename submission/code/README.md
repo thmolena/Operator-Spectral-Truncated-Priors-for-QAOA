@@ -1,37 +1,3 @@
-Metadata-Version: 2.4
-Name: uq-qaoa
-Version: 1.0.0
-Summary: Uncertainty-calibrated trust regions for query-efficient QAOA parameter search: configurable-depth reference package and deterministic reproduction artifact.
-Author-email: Molena Huynh <molena.huynh@jmp.com>
-Maintainer-email: Molena Huynh <molena.huynh@jmp.com>
-License: MIT
-Project-URL: Homepage, https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization
-Project-URL: Repository, https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization
-Keywords: QAOA,quantum-optimization,graph-neural-networks,uncertainty-quantification,trust-region,MaxCut
-Classifier: Development Status :: 5 - Production/Stable
-Classifier: Intended Audience :: Science/Research
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: OS Independent
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.10
-Classifier: Programming Language :: Python :: 3.11
-Classifier: Programming Language :: Python :: 3.12
-Classifier: Topic :: Scientific/Engineering :: Physics
-Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
-Requires-Python: >=3.10
-Description-Content-Type: text/markdown
-License-File: LICENSE
-Requires-Dist: numpy<3,>=1.24
-Requires-Dist: scipy<2,>=1.10
-Requires-Dist: pandas<4,>=2.0
-Requires-Dist: pyyaml<7,>=6.0
-Requires-Dist: networkx<4,>=3.0
-Requires-Dist: matplotlib<4,>=3.7
-Requires-Dist: scikit-learn<2,>=1.2
-Provides-Extra: test
-Requires-Dist: pytest<9,>=7.0; extra == "test"
-Dynamic: license-file
-
 # uq-qaoa — Reproduction Artifact
 
 Reference implementation and deterministic reproduction artifact for the

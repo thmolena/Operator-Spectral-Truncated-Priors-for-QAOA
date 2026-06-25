@@ -5,23 +5,51 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "uq-qaoa"
 version = "1.0.0"
-description = "Uncertainty-calibrated trust regions for QAOA: configurable-depth UQ-QAOA reference package and reproduction artifact."
-readme = {text = "Configurable-depth UQ-QAOA reference package supporting the manuscript 'Uncertainty-calibrated trust regions for QAOA'. Provides the statevector backend, QAOA angle utilities, and experiment configuration used to reproduce the reported results.", content-type = "text/plain"}
+description = "Uncertainty-calibrated trust regions for query-efficient QAOA parameter search: configurable-depth reference package and deterministic reproduction artifact."
+readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "M. Huynh"}]
+authors = [{name = "Molena Huynh", email = "molena.huynh@jmp.com"}]
+maintainers = [{name = "Molena Huynh", email = "molena.huynh@jmp.com"}]
+keywords = [
+    "QAOA",
+    "quantum-optimization",
+    "graph-neural-networks",
+    "uncertainty-quantification",
+    "trust-region",
+    "MaxCut",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
-    "numpy>=1.24",
-    "scipy>=1.10",
-    "pandas>=2.0",
-    "pyyaml>=6.0",
-    "networkx>=3.0",
-    "matplotlib>=3.7",
-    "scikit-learn>=1.2",
+    "numpy>=1.24,<3",
+    "scipy>=1.10,<2",
+    "pandas>=2.0,<4",
+    "pyyaml>=6.0,<7",
+    "networkx>=3.0,<4",
+    "matplotlib>=3.7,<4",
+    "scikit-learn>=1.2,<2",
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7.0"]
+test = ["pytest>=7.0,<9"]
+
+[project.urls]
+Homepage = "https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization"
+Repository = "https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization"
+
+[project.scripts]
+uqqaoa-reproduce = "uq_qaoa.reproduce:main"
 
 [tool.setuptools]
 package-dir = {"" = "python"}

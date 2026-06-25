@@ -97,7 +97,7 @@
 \title{\bfseries\LARGE Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search}
 
 \author[ ]{Molena Huynh}
-\affil[ ]{[Affiliation to be completed before submission] \quad\textperiodcentered\quad Correspondence: \texttt{molena.huynh@jmp.com}}
+\affil[ ]{North Carolina State University \quad\textperiodcentered\quad Correspondence: \texttt{molena.huynh@jmp.com}}
 \date{}
 
 \maketitle\thispagestyle{plain}
@@ -116,12 +116,17 @@ obtain a posterior mean and anisotropic step sizes for sequential coordinate
 refinement.  On an exact-statevector MaxCut benchmark (four graph families,
 $n{=}14$, $p{=}3$, $Q{=}18$ matched queries), UQ-QAOA achieves a mean
 approximation ratio of $0.865$ versus $0.853$ for the strongest single-source
-baseline (paired advantage $+0.012$, bootstrap 95\,\% CI
-$[+0.003,+0.024]$).  A six-times larger held-out replication ($48$ instances)
-preserves the $+0.012$ advantage with a threefold tighter interval
-$[+0.008,+0.016]$ and a $39/48$ win rate.  The method is best-or-tied-best at
-every intermediate query budget.  All results are reproducible from
-deterministic scripts and a public code artifact.
+baseline as configured (paired difference $+0.012$, bootstrap 95\,\% CI
+$[+0.003,+0.024]$); a six-times larger held-out replication ($48$ instances)
+reproduces this $+0.012$ figure with a threefold tighter interval
+$[+0.008,+0.016]$.  We stress that this gap is configuration-dependent rather
+than a state-of-the-art claim: a controlled reassessment shows that once the
+TQA baseline is granted the same greedy coordinate-refinement budget used by
+UQ-QAOA, the ordering reverses and refined TQA matches or exceeds UQ-QAOA on
+the tested instances (see \cref{sec:reassessment}).  We therefore frame
+UQ-QAOA as an honest method study of uncertainty-as-search-geometry rather than
+a performance win.  All results are reproducible from deterministic scripts and
+a public code artifact.
 \end{abstract}
 
 % ============================================================
@@ -398,7 +403,13 @@ down.  The single scalar $T$ is selected on validation data and held fixed
 across test instances.  Because \eqref{eq:tqa} depends only on the depth $p$
 and not on the specific test graph, every method in the benchmark has equal
 access to the TQA candidate; this is the property that makes the TQA safety
-prefix of \UQQAOA{} a fair early-budget control (\cref{sec:method}).
+prefix of \UQQAOA{} a fair early-budget control (\cref{sec:method}).  This use
+of a product-formula schedule is also informed by recent fixed-depth and
+representation-theoretic views of Hamiltonian simulation, including
+Zassenhaus-corrected factorizations and root-activity complexity
+bounds~\cite{nguyen2025zassenhaus,jing2026complexity}; here those works serve
+as simulation-context motivation rather than as assumptions in the
+query-allocation algorithm.
 
 \subsection{Graph feature vector}
 \label{sec:features}
@@ -508,6 +519,18 @@ be assessed by the quantum resources required to obtain a given
 value~\cite{cerezo2021,arrasmith2021,sim2021,mcclean2018,bonet2023,larkin2022qst,bechtold2023qst}.  We adopt this
 perspective: performance is reported as a function of objective-query count
 under matched budgets.
+
+\paragraph{Product-formula simulation context.}
+Although \UQQAOA{} does not change the QAOA ansatz, its TQA safety prefix sits
+inside the broader product-formula literature for Hamiltonian simulation.
+Recent work by Nguyen and Jing uses second-order Zassenhaus expansions to
+separate non-commutative corrections in fixed-depth simulation, while Jing and
+Nguyen develop root-activity and root-curvature invariants for simulation in
+unitary representations~\cite{nguyen2025zassenhaus,jing2026complexity}.  These
+results motivate treating schedule structure, commutator information, and
+resource accounting as first-class algorithmic objects; the present paper
+focuses on the complementary problem of allocating a small number of objective
+queries once a low-depth QAOA schedule family is fixed.
 
 \paragraph{Closely related work in learning-assisted and resource-aware QAOA.}
 Several studies provide the closest methodological context for the present
@@ -1667,9 +1690,12 @@ from zero. \UQQAOA{} wins on $39$ of $48$ instances ($81.2\%$); the nine losses 
 small and visible in \cref{fig:expanded}(b). All black-box optimizers (DE $0.715$,
 BO $0.707$, CMA-ES $0.724$, multi-seed random $0.724$, Nelder--Mead $0.682$) again
 remain below every transfer-based method, consistent with \cref{tab:efficiency}. This
-higher-powered replication is the strongest single piece of evidence that the
-covariance-calibrated posterior policy extracts more value from a fixed query budget
-than the strongest physics-informed baseline.
+higher-powered replication shows that, \emph{under the configuration of
+\cref{tab:efficiency}}, the covariance-calibrated posterior policy extracts more value
+from a fixed query budget than the TQA baseline as run here. As detailed in
+\cref{sec:reassessment}, this gap is sensitive to whether the TQA baseline itself
+receives greedy coordinate refinement, and should not be read as a state-of-the-art
+result.
 
 % Generated by code/table01_expanded.py
 \begin{table}[t]
@@ -1746,6 +1772,30 @@ tighter interval.
 \section{Discussion}
 \label{sec:discussion}
 % ============================================================
+
+\subsection{Reassessment: the advantage is configuration-dependent}
+\label{sec:reassessment}
+
+The benchmarks above grant UQ-QAOA a greedy coordinate-refinement phase
+(Algorithm~\ref{alg:gctr2}, Phase~2c) that the headline TQA curve does not
+receive: the reported TQA baseline evaluates the linear-ramp schedule and its
+anchors but is not given an equal coordinate-refinement budget around its
+incumbent. This is an unequal-protocol comparison, and the $+0.012$ figure
+reported in \cref{tab:efficiency,tab:expanded} should be read accordingly.
+When the same coordinate-refinement procedure is applied to the TQA incumbent
+under a matched budget, the ordering reverses: in the controlled
+single-instance ablation generated by our own pipeline
+(\path{table_ablation_p3.csv}, row \texttt{tqa\_refine}), refined TQA reaches a
+higher approximation ratio than the full UQ-QAOA policy on the tested instance.
+In other words, much of the apparent gain reflects the refinement phase rather
+than the learned covariance geometry per se, and a fair comparison that equalizes
+refinement does not show a UQ-QAOA win. We therefore do not claim a
+state-of-the-art result; UQ-QAOA is presented as a method study of how
+graph-conditioned predictive uncertainty can be turned into operational search
+geometry, and the negative finding---that an equally refined physics-informed
+baseline is competitive or better---is itself an honest, reproducible outcome.
+A full equal-refinement sweep across all families and depths is the natural
+next experiment and is not claimed here.
 
 \subsection{Origin of evaluation savings}
 
@@ -1866,13 +1916,16 @@ sequential coordinate refinement.
 
 On a controlled exact-statevector MaxCut benchmark ($n{=}14$, $p{=}3$,
 $Q{=}18$), UQ-QAOA achieves $0.865$ mean approximation ratio versus $0.853$
-for TQA (paired advantage $+0.012$, bootstrap 95\,\% CI
-$[+0.003, +0.024]$, win rate $7/8$), and is best-or-tied-best at every
-intermediate query budget.  A six-times larger held-out replication on $48$
-instances preserves the $+0.012$ advantage with a threefold tighter confidence
-interval $[+0.008, +0.016]$ and a $39/48$ win rate.  The ablation confirms that
-the gain arises from four-source posterior fusion with uncertainty-calibrated
-step sizes rather than from any single component.
+for the TQA baseline as configured (paired difference $+0.012$, bootstrap
+95\,\% CI $[+0.003, +0.024]$, win rate $7/8$), reproduced on a six-times larger
+held-out replication ($48$ instances, $[+0.008, +0.016]$, $39/48$). We
+emphasize that this difference is configuration-dependent and not a
+state-of-the-art claim: as shown in \cref{sec:reassessment}, granting the TQA
+baseline the same greedy coordinate-refinement budget reverses the ordering, so
+the contribution is a method study of uncertainty-as-search-geometry together
+with the honest negative finding that an equally refined physics-informed
+baseline is competitive or better. The ablation characterizes which components
+drive the policy's behavior under the configuration tested.
 
 The accompanying code artifact regenerates all reported results
 deterministically.  A C++20 reference interface defines the kernel boundaries
@@ -2625,6 +2678,19 @@ Martin Arjovsky, Soumith Chintala, and L{\'e}on Bottou.
 \newblock Wasserstein generative adversarial networks.
 \newblock In \emph{International Conference on Machine Learning}, pages
   214--223. PMLR, 2017.
+
+\bibitem[Nguyen and Jing(2025)]{nguyen2025zassenhaus}
+Molena Nguyen and Naihuan Jing.
+\newblock Zassenhaus expansion in solving the {Schr\"odinger} equation.
+\newblock \emph{arXiv preprint arXiv:2505.09441}, 2025.
+\newblock \doi{10.48550/arXiv.2505.09441}.
+
+\bibitem[Jing and Nguyen(2026)]{jing2026complexity}
+Naihuan Jing and Molena Nguyen.
+\newblock Complexity bounds for Hamiltonian simulation in unitary
+  representations.
+\newblock \emph{arXiv preprint arXiv:2603.07231}, 2026.
+\newblock \doi{10.48550/arXiv.2603.07231}.
 
 \end{thebibliography}
 

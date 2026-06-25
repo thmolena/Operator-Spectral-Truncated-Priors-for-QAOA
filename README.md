@@ -5,23 +5,23 @@
 [![Code Artifact](https://img.shields.io/badge/Reproducible_Code-submission%2Fcode-7c3aed?style=for-the-badge)](submission/code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111827?style=for-the-badge)](LICENSE)
 
-This repository develops **graph-conditioned machine learning for variational quantum optimization and for graph-structured biomedical inference**. Its unifying thesis is that disparate-looking decision problems—selecting variational parameters for the Quantum Approximate Optimization Algorithm (QAOA) and predicting node-level clinical risk—can be cast in one formulation: *learn a map from a structured graph to a calibrated parameterization of a downstream objective.*
+This repository develops graph-conditioned machine learning for variational quantum optimization and for graph-structured biomedical inference. Its unifying thesis is that two apparently distinct decision problems—selecting variational parameters for the Quantum Approximate Optimization Algorithm (QAOA) and predicting node-level clinical risk—admit one formulation: learning a map from a structured graph to a calibrated parameterization of a downstream objective.
 
-The repository is organized around two connected parts and the artifacts (paper, code, notebooks, website) that support them.
+The repository is organized around two connected parts together with the artifacts (paper, code, notebooks, website) that support them.
 
-| Part | Question it answers | Where it lives |
+| Part | Scope | Location |
 |---|---|---|
-| **Query-efficient QAOA parameter search** *(the main contribution)* | Can graph-conditioned *predictive uncertainty* be turned into an operational trust-region geometry that allocates a fixed QAOA query budget more effectively than single-source warm starts or black-box optimizers? | [`submission/`](submission) — manuscript + fully reproducible code artifact |
-| **Graph-conditioned learning across domains** | Can a single graph-conditioned learning interface replace per-instance QAOA search *and* transfer to biomedical risk prediction on patient-similarity graphs? | [`src/`](src), [`experiments/`](experiments), [`notebooks/`](notebooks) |
+| **Query-efficient QAOA parameter search** *(principal contribution)* | Conversion of graph-conditioned predictive uncertainty into an operational trust-region geometry that allocates a fixed QAOA query budget against single-source warm starts and black-box optimizers. | [`submission/`](submission) — manuscript and reproducible code artifact |
+| **Graph-conditioned learning across domains** | A single graph-conditioned learning interface applied to per-instance QAOA initialization and to biomedical risk prediction on patient-similarity graphs. | [`src/`](src), [`experiments/`](experiments), [`notebooks/`](notebooks) |
 
 ---
 
-## Main contribution: UQ-QAOA — Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA
+## Principal contribution: UQ-QAOA — Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA
 
 > **Manuscript:** *Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search* — [`submission/main.tex`](submission/main.tex).
-> **Code artifact (line-by-line reproducible):** [`submission/code/`](submission/code).
+> **Code artifact (deterministically reproducible):** [`submission/code/`](submission/code).
 
-For low-depth QAOA, the dominant practical cost is the number of objective-function *queries* needed to identify useful variational parameters. UQ-QAOA repurposes a graph neural network's *predictive covariance*—not as a confidence score, but as the **metric that defines the local search geometry**.
+For low-depth QAOA the dominant practical cost is the number of objective-function *queries* required to identify useful variational parameters. UQ-QAOA repurposes a graph neural network's *predictive covariance* as the metric that defines the local search geometry, rather than as a confidence score.
 
 ### Problem setting
 
@@ -53,55 +53,61 @@ $$
 \mu_{\mathrm{post}}=\Sigma_{\mathrm{post}}\!\!\sum_{s}\Sigma_s^{-1}\mu_s .
 $$
 
-The posterior covariance induces an anisotropic trust region $\mathcal T_{\phi,\rho}(G)=\{\theta:(\theta-\mu_\phi)^\top(\Sigma_\phi+\lambda I)^{-1}(\theta-\mu_\phi)\le\rho^2\}$ and per-coordinate step sizes $\delta_j=\mathrm{clip}\big(0.5\sqrt{[\Sigma_{\mathrm{post}}]_{jj}},\,0.05,\,0.30\big)$. The search then runs in three budget-accounted phases: a **TQA safety prefix** (dominance-preserving vs. the strongest physics-informed baseline), deterministic posterior-anchor evaluation, and **sequential greedy coordinate refinement** with trust-region contraction (step halving on stagnation).
+The posterior covariance induces an anisotropic trust region $\mathcal T_{\phi,\rho}(G)=\{\theta:(\theta-\mu_\phi)^\top(\Sigma_\phi+\lambda I)^{-1}(\theta-\mu_\phi)\le\rho^2\}$ and per-coordinate step sizes $\delta_j=\mathrm{clip}\big(0.5\sqrt{[\Sigma_{\mathrm{post}}]_{jj}},\,0.05,\,0.30\big)$. The search proceeds in three budget-accounted phases: a **TQA safety prefix** (dominance-preserving relative to the strongest physics-informed baseline), deterministic posterior-anchor evaluation, and **sequential greedy coordinate refinement** with trust-region contraction (step halving on stagnation).
 
-### Limited but honest guarantees
+### Scope of the guarantees
 
-A best-of-$K$ guarantee makes the geometric intuition precise: if the proposal places mass $\alpha_G(\varepsilon)$ on the $\varepsilon$-optimal subset of the trust region, then $K\ge\log(1/\delta)/\alpha_G(\varepsilon)$ samples suffice for $f_G(\widehat\theta_K)\ge f_G^{\mathcal T}-\varepsilon$ with probability $1-\delta$; a finite-shot extension adds a sub-Gaussian union bound, and a conformal construction yields finite-sample coverage under exchangeability. The guarantees are explicitly *local and conditional*—they formalize when a calibrated, compact region saves queries, not global QAOA optimality.
+A best-of-$K$ guarantee makes the geometric intuition precise: when the proposal places mass $\alpha_G(\varepsilon)$ on the $\varepsilon$-optimal subset of the trust region, $K\ge\log(1/\delta)/\alpha_G(\varepsilon)$ samples suffice for $f_G(\widehat\theta_K)\ge f_G^{\mathcal T}-\varepsilon$ with probability $1-\delta$; a finite-shot extension adds a sub-Gaussian union bound, and a conformal construction yields finite-sample coverage under exchangeability. The guarantees are local and conditional by design: they formalize the regime in which a calibrated, compact region saves queries, and they remain distinct from global QAOA optimality.
 
 ### Headline result (controlled exact-statevector benchmark, $n{=}14$, $p{=}3$, $Q{=}18$ matched queries)
+
+Mean approximation ratio (higher is better), with 95% bootstrap confidence interval and paired difference relative to TQA, transcribed from [`submission/code/tables/table01_computational_efficiency.csv`](submission/code/tables/table01_computational_efficiency.csv):
 
 | Method | Mean approx. ratio ↑ | 95% bootstrap CI | $\Delta$ vs. TQA |
 |---|---|---|---|
 | Random | 0.754 | [0.719, 0.788] | −0.100 |
-| Heuristic | 0.608 | [0.567, 0.649] | −0.246 |
-| $k$-NN | 0.642 | [0.604, 0.677] | −0.211 |
-| GNN point | 0.643 | [0.597, 0.688] | −0.211 |
-| TQA | 0.853 | [0.829, 0.878] | +0.000 |
+| Heuristic | 0.608 | [0.568, 0.649] | −0.246 |
+| $k$-NN | 0.642 | [0.605, 0.676] | −0.211 |
+| GNN point | 0.643 | [0.598, 0.689] | −0.211 |
+| TQA | 0.853 | [0.829, 0.879] | +0.000 |
 | **UQ-QAOA (ours)** | **0.865** | **[0.839, 0.892]** | **+0.012** |
 
-UQ-QAOA wins on **7 of 8** held-out instances (paired advantage $+0.012$, 95% bootstrap CI $[+0.003,+0.024]$ over 10,000 resamples) and is best-or-tied-best at *every* intermediate query budget. Differential evolution, GP-EI Bayesian optimization, CMA-ES, multi-seed random, and Nelder–Mead all reach $\le 0.754$ under $Q{=}18$. The ablation isolates the largest single contribution to the local $k$-NN prior (removing it drops the ratio to 0.645).
+UQ-QAOA exceeds TQA on **7 of 8** held-out instances (paired advantage $+0.012$, 95% bootstrap CI $[+0.003,+0.024]$ over 10,000 resamples) and remains best-or-tied-best at every intermediate query budget. Differential evolution, GP-EI Bayesian optimization, CMA-ES, multi-seed random, and Nelder–Mead each reach at most $0.754$ under $Q{=}18$. The ablation isolates the largest single contribution to the local $k$-NN prior: removing it lowers the ratio to 0.645 (see [`submission/code/tables/table03_ablation.csv`](submission/code/tables/table03_ablation.csv)).
 
-**Higher-powered replication.** On a $6\times$ larger held-out set of **48 instances** (12 per family, same protocol), the advantage holds at **+0.012** with a threefold tighter interval **[+0.008, +0.016]** and a **39/48** win rate — UQ-QAOA 0.862 vs. TQA 0.850. This stronger-statistics confirmation is generated by [`submission/code/table01_expanded.py`](submission/code/table01_expanded.py) and rendered by [`fig05_expanded_benchmark.py`](submission/code/fig05_expanded_benchmark.py).
+**Higher-powered replication.** On a $6\times$ larger held-out set of **48 instances** (12 per family, same protocol), the advantage holds at **+0.012** with a threefold tighter interval **[+0.008, +0.016]** and a **39/48** win rate — UQ-QAOA 0.862 versus TQA 0.850. This confirmation is generated by [`submission/code/table01_expanded.py`](submission/code/table01_expanded.py) and rendered by [`submission/code/fig05_expanded_benchmark.py`](submission/code/fig05_expanded_benchmark.py) (see [`tables/paired_uq_vs_tqa_expanded.csv`](submission/code/tables/paired_uq_vs_tqa_expanded.csv)).
 
-A C++20 reference backend documents the evaluator contract and reports a $4.30\times$ speedup at 8 threads for batched $n{=}14$ evaluation, identifying the mixer kernel as the dominant per-layer cost ($2.60\times$ the cost-phase kernel).
+A C++20 reference backend documents the evaluator contract and records a $4.30\times$ speedup at 8 threads for batched $n{=}14$ evaluation, identifying the mixer kernel as the dominant per-layer cost ($2.60\times$ the cost-phase kernel; see [`tables/bench_thread_scaling.csv`](submission/code/tables/bench_thread_scaling.csv) and [`tables/bench_cpu_kernels.csv`](submission/code/tables/bench_cpu_kernels.csv)). The Python and C++ statevector implementations agree to a maximum absolute error of $5.3\times10^{-13}$ across all tested sizes ([`results/python_cpp_validation.csv`](submission/code/results/python_cpp_validation.csv)).
 
-### Reproduce the main results end-to-end
+The reported margin is configuration-dependent rather than a state-of-the-art claim. A controlled reassessment in the manuscript shows that granting the TQA baseline the same greedy coordinate-refinement budget used by UQ-QAOA reverses the ordering on the tested instances; UQ-QAOA is therefore framed as a method study of uncertainty-as-search-geometry.
+
+### Reproduce the principal results end-to-end
 
 ```bash
 cd submission/code
-conda env create -f environment.yml && conda activate uq-qaoa-artifact   # or: pip install -r requirements.txt
-bash reproduce.sh smoke        # fast end-to-end sanity pass
-python generate_all.py         # regenerate every figure and table (~2–5 min on the reference platform)
+pip install uq-qaoa                          # installs the uqqaoa-reproduce entry point
+# or, from the artifact checkout: pip install .
+
+uqqaoa-reproduce                             # regenerate every figure and table (~2–5 min on the reference platform)
+uqqaoa-reproduce --smoke                     # fast end-to-end sanity pass
 ```
 
-Everything is deterministic given the global seed `260424803`. The mapping from each manuscript figure/table to its generating script is listed in the manuscript's *Reproducibility* section and in [`submission/code`](submission/code).
+Equivalent direct invocation: `python generate_all.py`. Every output is deterministic given the global seed `260424803`. The mapping from each manuscript figure and table to its generating script is listed in the manuscript's *Reproducibility manifest* and in [`submission/code/README.md`](submission/code/README.md).
 
 ---
 
 ## Broader work: graph-conditioned learning across quantum optimization and biomedicine
 
-This part of the repository shows the *same modeling interface*—graph in, calibrated parameterization out—operating in two domains.
+This part of the repository applies the same modeling interface—graph in, calibrated parameterization out—in two domains.
 
-- **Transcriptomic QAOA initialization.** A graph-conditioned GNN predicts depth-2 QAOA angles $(\gamma_1,\gamma_2,\beta_1,\beta_2)$ for MaxCut on prostate transcriptomic co-expression graphs. It reaches a **0.8682** held-out mean approximation ratio versus **0.8686** for direct classical search (Nelder–Mead), while reducing median inference from 675.9 ms to **0.256 ms** (≈ 2640× faster) and improving the prior learned baseline (0.8208) by +0.0474 absolute.
-- **Cardiotocography (CTG) screening.** A residual clinical GCN on a patient-similarity graph attains **98.8%** accuracy, **0.942** balanced accuracy, and **0.978** ROC AUC on a held-out split ($n=426$, 35 pathologic), improving the simpler graph baseline by +2.1 pts accuracy and matching the strongest tabular models on false-positive count.
+- **Transcriptomic QAOA initialization.** A graph-conditioned GNN predicts depth-2 QAOA angles $(\gamma_1,\gamma_2,\beta_1,\beta_2)$ for MaxCut on prostate transcriptomic co-expression graphs. It reaches a **0.8682** held-out mean approximation ratio against **0.8686** for direct classical search (Nelder–Mead), while reducing median inference from 675.9 ms to **0.256 ms** (≈ 2640× faster) and improving the prior learned baseline (0.8208) by +0.0474 absolute. Source: [`notebooks/qaoa_demo.ipynb`](notebooks/qaoa_demo.ipynb).
+- **Cardiotocography (CTG) screening.** A residual clinical GCN on a patient-similarity graph attains **98.8%** accuracy, **0.942** balanced accuracy, and **0.978** ROC AUC on a held-out split ($n=426$, 35 pathologic), improving the simpler graph baseline by +2.1 points accuracy and matching the strongest tabular models on false-positive count. Source: [`notebooks/bio_demo.ipynb`](notebooks/bio_demo.ipynb).
 
-The contribution is bounded by design: the claim is a unified, transferable graph-learning framework with strong held-out performance—not universal superiority over every classical baseline.
+The contribution is bounded by design: it is a unified, transferable graph-learning framework with strong held-out performance, stated independently of universal superiority over every classical baseline.
 
 | Metric | Better | Meaning |
 |---|---|---|
 | Approximation ratio | higher | fraction of optimal MaxCut value recovered |
-| Balanced accuracy | higher | mean recall across classes (critical under class imbalance) |
+| Balanced accuracy | higher | mean recall across classes (informative under class imbalance) |
 | ROC AUC | higher | probability a pathologic case is ranked above a normal case |
 
 ---
@@ -112,16 +118,16 @@ The contribution is bounded by design: the claim is a unified, transferable grap
 |---|---|---|
 | [`notebooks/quantum_ai_bio_combined.ipynb`](notebooks/quantum_ai_bio_combined.ipynb) | Integrated analysis | Shared graph-conditioned formulation spanning both branches |
 | [`notebooks/qaoa_demo.ipynb`](notebooks/qaoa_demo.ipynb) | QAOA analysis | Transcriptomic graphs, depth-2 statevector simulation, initializer comparison, ablations |
-| [`notebooks/bio_demo.ipynb`](notebooks/bio_demo.ipynb) | Biomedical analysis | Split-first preprocessing, $k$-NN graph construction, graph-vs-tabular evaluation |
+| [`notebooks/bio_demo.ipynb`](notebooks/bio_demo.ipynb) | Biomedical analysis | Split-first preprocessing, $k$-NN graph construction, graph-versus-tabular evaluation |
 
-Static HTML renders are in [`website/notebooks_html/`](website/notebooks_html) and are surfaced on the project website.
+Static HTML renders reside in [`website/notebooks_html/`](website/notebooks_html) and are surfaced on the project website.
 
 ---
 
 ## Repository layout
 
 ```text
-submission/        Main paper: UQ-QAOA manuscript (main.tex, refs.bib) + code/ artifact
+submission/        UQ-QAOA manuscript (main.tex) and code/ artifact
   code/            reproducible Python package (python/uq_qaoa/), C++20 backend (cpp/),
                    figure/table/experiment scripts, configs, results, tests, reproduce.sh
 notebooks/         core analyses and demonstration notebooks (broader work)
@@ -150,12 +156,12 @@ python experiments/qaoa/run_qaoa_baselines.py
 python experiments/biomedical/run_bio_baselines.py
 ```
 
-### Local website + prediction demo
+### Local website and prediction demo
 
 The landing page [`index.html`](index.html) includes an optional live QAOA-angle prediction demo backed by a small Flask service.
 
 ```bash
-# 1) Start the prediction API from the repo root
+# 1) Start the prediction API from the repository root
 FLASK_APP=src.server flask run --host=0.0.0.0 --port=5000
 # 2) Serve the website
 python -m http.server 8000
@@ -169,12 +175,13 @@ python -m http.server 8000
 ## Citation
 
 ```bibtex
-@misc{huynh_uqqaoa,
-  author = {Huynh, Molena},
-  title  = {Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search},
-  year   = {2026},
-  note   = {Code and manuscript},
-  url    = {https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization}
+@misc{huynh2026uqqaoa,
+  author       = {Huynh, Molena},
+  title        = {Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search},
+  year         = {2026},
+  howpublished = {Code and manuscript},
+  note         = {North Carolina State University; molena.huynh@jmp.com},
+  url          = {https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization}
 }
 ```
 

@@ -1,0 +1,2 @@
+[console_scripts]
+uqqaoa-reproduce = uq_qaoa.reproduce:main

@@ -1,3 +1,5 @@
+LICENSE
+README.md
 pyproject.toml
 python/uq_qaoa/__init__.py
 python/uq_qaoa/baselines.py
@@ -12,6 +14,7 @@ python/uq_qaoa/plotting.py
 python/uq_qaoa/posterior.py
 python/uq_qaoa/priors.py
 python/uq_qaoa/qaoa_angles.py
+python/uq_qaoa/reproduce.py
 python/uq_qaoa/reproducibility.py
 python/uq_qaoa/search_policy.py
 python/uq_qaoa/statevector.py
@@ -20,6 +23,7 @@ python/uq_qaoa/traces.py
 python/uq_qaoa.egg-info/PKG-INFO
 python/uq_qaoa.egg-info/SOURCES.txt
 python/uq_qaoa.egg-info/dependency_links.txt
+python/uq_qaoa.egg-info/entry_points.txt
 python/uq_qaoa.egg-info/requires.txt
 python/uq_qaoa.egg-info/top_level.txt
 tests/test_core.py
