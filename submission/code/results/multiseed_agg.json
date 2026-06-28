@@ -1,0 +1,94 @@
+{
+  "seeds": [
+    260424803,
+    7,
+    101,
+    2024,
+    31337,
+    555,
+    99991,
+    12345,
+    424242,
+    8675309
+  ],
+  "aggregate": {
+    "Random": {
+      "mean_ratio_mean": 0.742273613334735,
+      "mean_ratio_std": 0.009190612593656024,
+      "delta_mean": 0.030857246303870267,
+      "delta_std": 0.013379539111385563,
+      "delta_min": 0.013276008987074983,
+      "delta_max": 0.058922490022058197,
+      "seeds_with_positive_delta": 10,
+      "total_wins": 116,
+      "total_instances": 160,
+      "qtt_mean": 23.5375,
+      "qtt_std": 1.0945731029848018
+    },
+    "TQA": {
+      "mean_ratio_mean": 0.615291610097543,
+      "mean_ratio_std": 0.007804445629470179,
+      "delta_mean": -0.09612475693332172,
+      "delta_std": 0.012050560307681521,
+      "delta_min": -0.11594281518074473,
+      "delta_max": -0.06977968859982317,
+      "seeds_with_positive_delta": 0,
+      "total_wins": 0,
+      "total_instances": 160,
+      "qtt_mean": 25.0,
+      "qtt_std": 0.0
+    },
+    "TQA+coordinate": {
+      "mean_ratio_mean": 0.7114163670308646,
+      "mean_ratio_std": 0.017230261431194556,
+      "delta_mean": 0.0,
+      "delta_std": 0.0,
+      "delta_min": 0.0,
+      "delta_max": 0.0,
+      "seeds_with_positive_delta": 0,
+      "total_wins": 0,
+      "total_instances": 160,
+      "qtt_mean": 24.74375,
+      "qtt_std": 0.4530471676449496
+    },
+    "kNN+coordinate": {
+      "mean_ratio_mean": 0.7491984191773443,
+      "mean_ratio_std": 0.01905368325267745,
+      "delta_mean": 0.0377820521464798,
+      "delta_std": 0.013632887380618209,
+      "delta_min": 0.01378858610700455,
+      "delta_max": 0.050990809151910434,
+      "seeds_with_positive_delta": 10,
+      "total_wins": 120,
+      "total_instances": 160,
+      "qtt_mean": 23.96875,
+      "qtt_std": 0.8075436434714295
+    },
+    "OST diagonal": {
+      "mean_ratio_mean": 0.8112153035334778,
+      "mean_ratio_std": 0.009131690553786875,
+      "delta_mean": 0.0997989365026132,
+      "delta_std": 0.013737602313332358,
+      "delta_min": 0.06948730587884815,
+      "delta_max": 0.12378657393506416,
+      "seeds_with_positive_delta": 10,
+      "total_wins": 154,
+      "total_instances": 160,
+      "qtt_mean": 11.5,
+      "qtt_std": 3.4039397109166836
+    },
+    "OST-QAOA": {
+      "mean_ratio_mean": 0.8186831463996679,
+      "mean_ratio_std": 0.008712880921863016,
+      "delta_mean": 0.10726677936880333,
+      "delta_std": 0.010911731881056035,
+      "delta_min": 0.08700668654367087,
+      "delta_max": 0.12590818180817115,
+      "seeds_with_positive_delta": 10,
+      "total_wins": 157,
+      "total_instances": 160,
+      "qtt_mean": 10.45625,
+      "qtt_std": 2.8195205586332497
+    }
+  }
+}

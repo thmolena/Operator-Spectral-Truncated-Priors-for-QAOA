@@ -1,0 +1,13 @@
+\begin{tabular}{llccc}
+\toprule
+Prior / policy & Graph operator & Noncommuting & Off-diagonal & Query-
+ & used & generators & search & ranked \\
+\midrule
+Random & --- & \xmark & \xmark & \xmark \\
+TQA & fixed schedule & \xmark & \xmark & \xmark \\
+TQA+coordinate & fixed schedule & \xmark & \xmark & \cmark \\
+kNN+coordinate & graph features & \xmark & \xmark & \cmark \\
+OST diagonal & $\mathcal{O}_{G,r}$ (diagonal) & \cmark & \xmark & \cmark \\
+\OSTQAOA{} (proposed) & $\mathcal{O}_{G,r}$ (full) & \cmark & \cmark & \cmark \\
+\bottomrule
+\end{tabular}

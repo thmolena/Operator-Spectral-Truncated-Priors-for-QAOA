@@ -801,7 +801,7 @@
         <a href="#method">Method</a>
         <a href="#theory">Theory</a>
         <a href="#results">Results</a>
-        <a href="#companion">Companion</a>
+        <a href="#significance">Significance</a>
         <a href="#demo">Demo</a>
         <a href="#notebooks">Paper &amp; Code</a>
         <a href="https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization" target="_blank" rel="noreferrer">GitHub</a>
@@ -1021,210 +1021,93 @@
         </div>
       </section>
 
-      <section id="companion" class="block-shell">
+      <section id="significance" class="block-shell">
         <div class="block-inner">
           <div class="section-header">
-            <div class="section-label">Companion Project &bull; Graph AI across domains</div>
+            <div class="section-label">Significance</div>
             <div class="section-intro body-copy">
-              <h2>Transcriptomic QAOA initialization and biomedical CTG screening</h2>
-          <p>
-            The same interface&mdash;graph in, calibrated parameterization out&mdash;is tested across two domains to probe its generality. In the first, a graph-conditioned GNN predicts depth-2 QAOA angles for weighted MaxCut on prostate transcriptomic co-expression graphs, recovering near-direct-search quality in a single forward pass. In the second, a residual clinical GCN performs node-level pathologic-risk prediction on a cardiotocography patient-similarity graph. The studies below report held-out evidence and state the bounded regime in which it holds.
-          </p>
-          <div class="lead-callout">
-            <p>
-              Together, these results make two points. Structure-aware parameter prediction is a viable route to transferring fixed-depth quantum optimization across related weighted instances, and the same formulation carries over to a biomedical graph-inference task&mdash;both within a bounded operating regime that the work states rather than obscures.
-            </p>
-          </div>
-        </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="findings" class="block-shell">
-        <div class="block-inner">
-          <div class="section-header">
-            <div class="section-intro">
-              <h2>Comparative Results</h2>
+              <h2>Why query efficiency is the operationally relevant axis</h2>
               <p>
-                The companion predictor is measured against the right ceiling&mdash;direct depth-2 search&mdash;rather than against weak initializers that would flatter it. The central finding is that it retains essentially all of the downstream MaxCut objective on held-out transcriptomic graphs while cutting inference-time cost by orders of magnitude.
+                In low-depth QAOA the dominant practical cost is not the circuit but the <em>outer loop</em>: the number of objective-function evaluations &mdash; each a full quantum-circuit execution, or a costly classical statevector simulation &mdash; spent tuning the variational angles on every new instance. A warm start that only supplies a good <em>point</em> still leaves the optimizer to discover, from scratch, <em>which directions</em> in angle space are worth probing. OST-QAOA supplies both: an operator-derived posterior mean and, through the spectrally truncated rank-$n$ covariance, the collective cross-layer search directions themselves. The measured consequence is a $\approx 2.2\times$ reduction in objective queries to comparable quality &mdash; the quantity that, on hardware, translates directly into shots and wall-clock on the device.
               </p>
             </div>
           </div>
-
-          <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Evaluation Context</th>
-              <th>Leading Method</th>
-              <th>Winning Evidence</th>
-              <th>Comparison To Existing Methods</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Held-out transcriptomic benchmark</td>
-              <td>Graph-conditioned GNN</td>
-              <td>Mean approximation ratio 0.8682, runtime 0.3652 ms</td>
-              <td>Retains 99.95% of the direct-search objective while replacing repeated 936.1255 ms search with fast graph-conditioned inference.</td>
-            </tr>
-            <tr>
-              <td>Executed depolarizing-noise evaluation</td>
-              <td>Graph-conditioned GNN</td>
-              <td>Held-out ratio 0.7850 at eta = 0.05</td>
-              <td>Remains close to 0.7902 from classical-search angles across the tested noise grid on the same held-out family.</td>
-            </tr>
-            <tr>
-              <td>Supporting biomedical operating point</td>
-              <td>Adaptive BioGCN configuration</td>
-              <td>98.8% accuracy with one false positive</td>
-              <td>Secondary result showing the same graph-to-decision framing extends beyond the primary optimization branch.</td>
-            </tr>
-          </tbody>
-        </table>
-          </div>
-          <p class="table-note">
-        Scope is deliberately constrained: the page reports only the strongest fixed-depth findings actually produced by the executed repository, and it does not advance these results as evidence of asymptotic quantum speedup.
-          </p>
-
           <div class="grid-3">
-        <article class="card">
-          <div class="tag">Primary Benchmark</div>
-          <h3>Near-direct-search quality on held-out graphs</h3>
-          <p>
-            On the real transcriptomic graph family, the graph-conditioned predictor nearly matches direct multi-start optimization yet requires no per-instance outer-loop search at inference time.
-          </p>
-          <div class="metric-line">Operational reading: in the tested regime, repeated fixed-depth QAOA evaluation becomes materially cheaper at no measurable cost to the downstream objective.</div>
-        </article>
-
-        <article class="card">
-          <div class="tag">Noise Evaluation</div>
-          <h3>Stable degradation under executed noise</h3>
-          <p>
-            Across the tested depolarizing-noise grid the learned initializer degrades gracefully rather than collapsing, tracking the classical-search reference even at eta = 0.05.
-          </p>
-          <div class="metric-line">Operational reading: the fixed-depth learned initialization stays usable once the idealized statevector assumptions are relaxed in the executed noise study.</div>
-        </article>
-
-        <article class="card">
-          <div class="tag">Secondary Branch</div>
-          <h3>Graph-to-decision framing extends to CTG</h3>
-          <p>
-            The biomedical branch demonstrates the breadth of the approach, but it remains secondary to the transcriptomic QAOA result and should be read as supporting evidence, not the main physics claim.
-          </p>
-          <div class="metric-line">Operational reading: the repository establishes one reusable graph-learning interface that serves both optimization and biomedical decision settings.</div>
-        </article>
+            <article class="card">
+              <div class="tag">What the result is</div>
+              <h3>A budget-matched, paired, leakage-controlled win</h3>
+              <p>Every method receives the identical $Q{=}24$ exact-statevector query budget on $16$ family-held-out instances. OST-QAOA wins all $16$ paired comparisons against budget-matched TQA coordinate refinement (sign-test $p<10^{-4}$), at a $+0.110$ mean approximation-ratio advantage.</p>
+            </article>
+            <article class="card">
+              <div class="tag">Where the gain comes from</div>
+              <h3>Off-diagonal operator geometry, not just a point</h3>
+              <p>Ablating the search to diagonal (commutative) directions removes a measurable part of the advantage ($0.818\to0.806$), localizing the gain to the noncommuting, off-diagonal structure of the angle operator &mdash; exactly the object the spectral truncation preserves.</p>
+            </article>
+            <article class="card">
+              <div class="tag">Honest scope</div>
+              <h3>A controlled method study, not a speedup claim</h3>
+              <p>Results are exact-statevector MaxCut on synthetic graph families ($n\in\{8,10\}$, $p{=}3$); the margin is configuration-dependent. This is a fully reproducible, audit-sized method study &mdash; not a hardware-scale or asymptotic-advantage claim, and stated as such.</p>
+            </article>
           </div>
-        </div>
-      </section>
-
-      <section id="applications" class="block-shell">
-        <div class="block-inner">
-          <div class="section-header">
-            <div class="section-intro body-copy">
-              <h2>From Benchmarks to Applications</h2>
-              <p>
-                The benchmark centers on repeated fixed-depth optimization over structured weighted graphs, where the value of a better model is operational rather than cosmetic. It determines how often full parameter search must be rerun, how cheaply related instances can be evaluated, and how confidently objective retention can be audited.
-              </p>
-            </div>
-          </div>
-
-          <ul class="application-list">
-        <li>
-          <strong>Transcriptomic optimization.</strong> New related biological graphs can be evaluated without rerunning costly multi-start search from scratch, while staying close to the direct-search objective.
-        </li>
-        <li>
-          <strong>Noise-aware evaluation.</strong> The learned initialization remains close to the classical-search baseline as local depolarizing noise increases across the tested grid, so it does not depend on idealized hardware.
-        </li>
-        <li>
-          <strong>Secondary CTG setting.</strong> The same structural learning approach can be reused for cohort-level decision tasks, even though this branch is not the primary contribution of the page.
-        </li>
-          </ul>
         </div>
       </section>
 
       <section id="figures" class="block-shell">
         <div class="block-inner">
           <div class="section-header">
-            <div class="section-label">Visual Evidence</div>
+            <div class="section-label">Figures from the manuscript</div>
             <div class="section-intro">
-              <h2>Supporting figures</h2>
+              <h2>The evidence, as it appears in the paper</h2>
               <p>
-                Each figure is shown at full on-page size and can be opened at native resolution, and every panel traces back to the notebook or manuscript evidence that produced it.
+                Every panel below is a figure from the manuscript, rendered from the artifact that the installable <code>uq-qaoa</code> package regenerates from a single deterministic seed. No number on this page is entered by hand.
               </p>
             </div>
           </div>
 
           <div class="grid-2">
-        <figure class="figure">
-          <button class="figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_landscape_geometry.png" data-figure-title="QAOA landscape geometry">
-            <img src="website/notebooks_html/figures/qaoa_demo_landscape_geometry.png" alt="QAOA landscape geometry figure" loading="lazy" decoding="async" />
-          </button>
-          <figcaption class="figure-copy">
-            <h3>QAOA landscape geometry</h3>
-            <p>
-              The depth-2 high-value basin is narrow rather than diffuse. This is precisely why an accurate learned warm start pays off: it lands the search inside a small target that random or generic initialization would rarely hit.
-            </p>
-            <div class="figure-actions">
-              <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_landscape_geometry.png" data-figure-title="QAOA landscape geometry">Open full resolution</button>
-              <a class="button-link" href="website/notebooks_html/qaoa_demo.html">Open notebook context</a>
-            </div>
-            <div class="figure-note">Use the full-resolution view to inspect the basin concentration and near-optimum fraction more clearly.</div>
-          </figcaption>
-        </figure>
-
-        <figure class="figure">
-          <button class="figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_benchmark_overview.png" data-figure-title="Held-out benchmark overview">
-            <img src="website/notebooks_html/figures/qaoa_demo_benchmark_overview.png" alt="Held-out benchmark overview for the QAOA transcriptomic evaluation" loading="lazy" decoding="async" />
-          </button>
-          <figcaption class="figure-copy">
-            <h3>Held-out benchmark overview</h3>
-            <p>
-              The comparison is anchored to direct search, the true operational ceiling for learned fixed-depth QAOA initialization, rather than to weak initializers that would overstate the margin.
-            </p>
-            <div class="figure-actions">
-              <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_benchmark_overview.png" data-figure-title="Held-out benchmark overview">Open full resolution</button>
-              <a class="button-link" href="website/notebooks_html/qaoa_demo.html">Open notebook context</a>
-            </div>
-            <div class="figure-note">This benchmark panel is sized to keep the comparison text and summary statistics fully legible.</div>
-          </figcaption>
-        </figure>
+            <figure class="figure">
+              <button class="figure-zoom" type="button" data-figure-src="figures/fig01_operator_spectrum.png" data-figure-title="Operator construction and spectral truncation">
+                <img src="figures/fig01_operator_spectrum.png" alt="Operator spectrum and rank-n spectral truncation of the QAOA angle operator" loading="lazy" decoding="async" />
+              </button>
+              <figcaption class="figure-copy">
+                <h3>Operator construction &amp; spectral truncation</h3>
+                <p>Each graph maps to two noncommuting $2p\times2p$ angle-space operators; their commutator enters a single operator that is spectrally truncated to a rank-$n$ covariance. The spectrum shows how truncation concentrates the search onto the leading collective directions.</p>
+                <div class="figure-actions"><button class="button-link figure-zoom" type="button" data-figure-src="figures/fig01_operator_spectrum.png" data-figure-title="Operator construction and spectral truncation">Open full resolution</button><a class="button-link" href="submission/main.pdf">See in paper</a></div>
+              </figcaption>
+            </figure>
+            <figure class="figure">
+              <button class="figure-zoom" type="button" data-figure-src="figures/fig02_benchmark.png" data-figure-title="Controlled exact-statevector benchmark">
+                <img src="figures/fig02_benchmark.png" alt="Approximation ratio of OST-QAOA versus baselines at matched query budget" loading="lazy" decoding="async" />
+              </button>
+              <figcaption class="figure-copy">
+                <h3>Controlled benchmark at matched budget</h3>
+                <p>Mean approximation ratio across the six methods at the identical $Q{=}24$ query budget on $16$ family-held-out instances. OST-QAOA attains the highest ratio ($0.818$); the diagonal/commutative ablation isolates the contribution of the off-diagonal operator geometry.</p>
+                <div class="figure-actions"><button class="button-link figure-zoom" type="button" data-figure-src="figures/fig02_benchmark.png" data-figure-title="Controlled exact-statevector benchmark">Open full resolution</button><a class="button-link" href="submission/main.pdf">See in paper</a></div>
+              </figcaption>
+            </figure>
           </div>
 
           <div class="grid-2">
-        <figure class="figure">
-          <button class="figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_state_concentration.png" data-figure-title="QAOA state concentration">
-            <img src="website/notebooks_html/figures/qaoa_demo_state_concentration.png" alt="QAOA state concentration across graph families" loading="lazy" decoding="async" />
-          </button>
-          <figcaption class="figure-copy">
-            <h3>QAOA state concentration</h3>
-            <p>
-              Parameter concentration across graph families indicates that the learned initializer is stable and transfers to held-out transcriptomic graphs rather than overfitting a single topology.
-            </p>
-            <div class="figure-actions">
-              <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/qaoa_demo_state_concentration.png" data-figure-title="QAOA state concentration">Open full resolution</button>
-              <a class="button-link" href="website/notebooks_html/main.pdf">Open paper context</a>
-            </div>
-            <div class="figure-note">Generated from the executed QAOA demo notebook.</div>
-          </figcaption>
-        </figure>
-
-        <figure class="figure">
-          <button class="figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/bio_demo_heldout_evaluation.png" data-figure-title="Held-out CTG evaluation">
-            <img src="website/notebooks_html/figures/bio_demo_heldout_evaluation.png" alt="Held-out CTG evaluation figure" loading="lazy" decoding="async" />
-          </button>
-          <figcaption class="figure-copy">
-            <h3>Held-out CTG evaluation</h3>
-            <p>
-              The biomedical branch is represented by its strongest quantitative evaluation rather than a topology schematic, foregrounding measured held-out evidence over descriptive illustration.
-            </p>
-            <div class="figure-actions">
-              <button class="button-link figure-zoom" type="button" data-figure-src="website/notebooks_html/figures/bio_demo_heldout_evaluation.png" data-figure-title="Held-out CTG evaluation">Open full resolution</button>
-              <a class="button-link" href="website/notebooks_html/bio_demo.html">Open notebook context</a>
-            </div>
-            <div class="figure-note">This panel presents the clearest available evaluation of the CTG branch in place of the smaller graph-topology overview.</div>
-          </figcaption>
-        </figure>
+            <figure class="figure">
+              <button class="figure-zoom" type="button" data-figure-src="figures/fig03_truncation_sweep.png" data-figure-title="Spectral-truncation sweep">
+                <img src="figures/fig03_truncation_sweep.png" alt="Truncation sweep showing an interior optimum in rank n" loading="lazy" decoding="async" />
+              </button>
+              <figcaption class="figure-copy">
+                <h3>Interior optimum of the truncation sweep</h3>
+                <p>Sweeping the truncation rank $n\in\{1,\dots,2p\}$ exhibits the interior optimum predicted by the query-budget bound: aggressive truncation underfits the angle geometry, no truncation over-diffuses the covariance, and the operating point sits at $n^{\star}{=}4$.</p>
+                <div class="figure-actions"><button class="button-link figure-zoom" type="button" data-figure-src="figures/fig03_truncation_sweep.png" data-figure-title="Spectral-truncation sweep">Open full resolution</button><a class="button-link" href="submission/main.pdf">See in paper</a></div>
+              </figcaption>
+            </figure>
+            <figure class="figure">
+              <button class="figure-zoom" type="button" data-figure-src="figures/fig04_query_curves.png" data-figure-title="Query-efficiency curves">
+                <img src="figures/fig04_query_curves.png" alt="Best-so-far approximation ratio versus number of objective queries" loading="lazy" decoding="async" />
+              </button>
+              <figcaption class="figure-copy">
+                <h3>Query-efficiency frontier</h3>
+                <p>Best-so-far approximation ratio versus the number of objective queries. OST-QAOA reaches $98\%$ of the best observed ratio in a mean of $11.6$ queries against $25.0$ for the budget-matched baseline &mdash; the $\approx2.2\times$ reduction that defines the result.</p>
+                <div class="figure-actions"><button class="button-link figure-zoom" type="button" data-figure-src="figures/fig04_query_curves.png" data-figure-title="Query-efficiency curves">Open full resolution</button><a class="button-link" href="submission/main.pdf">See in paper</a></div>
+              </figcaption>
+            </figure>
           </div>
         </div>
       </section>
@@ -1247,7 +1130,7 @@
             <div class="tag">Interactive Controls</div>
             <h3>Generate a weighted graph and predict QAOA parameters</h3>
             <p class="demo-copy">
-              This is a compact live view of the repository demonstration, meant for quick inspection of the graph-conditioned parameterization workflow rather than full benchmark reproduction.
+              This is a compact live view of the repository demonstration, meant for quick inspection of the operator-prior parameterization workflow rather than full benchmark reproduction.
             </p>
           </div>
 
@@ -1304,7 +1187,7 @@
         </article>
           </div>
 
-          <div class="code-block">Main fixed-depth result: graph-conditioned GNN ratio 0.8682, direct-search ratio 0.8686, learned-runtime 0.3652 ms, direct-search runtime 936.1255 ms.</div>
+          <div class="code-block">Headline result (exact statevector, p=3, Q=24): OST-QAOA mean ratio 0.818 vs 0.708 budget-matched TQA+coordinate (delta +0.110, 16/16 paired wins); reaches 98% of the best observed ratio in 11.6 objective queries vs 25.0 (~2.2x fewer).</div>
         </div>
       </section>
 
@@ -1315,7 +1198,7 @@
             <div class="section-intro">
               <h2>Reproducible materials</h2>
               <p>
-                Every claim on this page is backed by released material: the OST-QAOA manuscript and its installable, deterministic code artifact, the companion-project manuscript, the rendered notebooks, and the full repository source. The entire manuscript &mdash; every figure, table, CSV summary, and query trace &mdash; is regenerated from a single seed by:
+                Every claim on this page is backed by released material: the OST-QAOA manuscript, its installable and deterministic code artifact, and the full repository source. The entire manuscript &mdash; every figure, table, CSV summary, and query trace &mdash; is regenerated from a single seed by:
               </p>
               <pre style="overflow-x:auto;background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-size:0.86rem;line-height:1.5;"><code>cd submission/code
 pip install .
@@ -1344,35 +1227,8 @@ uqqaoa-reproduce --output-dir . --depth 3 --budget 24 --rank 4 --commutator-weig
           </div>
         </div>
 
-        <div class="link-item">
-          <div>
-            <strong>Companion-project manuscript</strong>
-            <div class="table-note">Graph-conditioned GNN for transcriptomic QAOA initialization and the biomedical CTG branch.</div>
-          </div>
-          <div class="link-actions">
-            <a class="button-link" href="website/notebooks_html/main.pdf">PDF</a>
-          </div>
-        </div>
 
-        <div class="link-item">
-          <div>
-            <strong>Executed QAOA notebook</strong>
-            <div class="table-note">Primary rendered benchmark notebook for the graph-conditioned fixed-depth QAOA evaluation.</div>
-          </div>
-          <div class="link-actions">
-            <a class="button-link" href="website/notebooks_html/qaoa_demo.html">Open</a>
-          </div>
-        </div>
 
-        <div class="link-item">
-          <div>
-            <strong>Integrated project notebook</strong>
-            <div class="table-note">Cross-domain notebook spanning the transcriptomic optimization branch and the secondary CTG branch.</div>
-          </div>
-          <div class="link-actions">
-            <a class="button-link" href="website/notebooks_html/quantum_ai_bio_combined.html">Open</a>
-          </div>
-        </div>
 
         <div class="link-item">
           <div>

@@ -1,17 +1,17 @@
 # Operator-Spectral Truncated Priors for Query-Efficient QAOA (OST-QAOA)
 
 [![Project Website](https://img.shields.io/badge/Project_Website-Open-0f766e?style=for-the-badge)](https://thmolena.github.io/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/)
-[![Paper](https://img.shields.io/badge/Paper-OST--QAOA-1d4ed8?style=for-the-badge)](submission/main.tex)
+[![Paper](https://img.shields.io/badge/Paper-OST--QAOA%20(PDF)-1d4ed8?style=for-the-badge)](submission/main.pdf)
 [![Code Artifact](https://img.shields.io/badge/Reproducible_Code-submission%2Fcode-7c3aed?style=for-the-badge)](submission/code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111827?style=for-the-badge)](LICENSE)
 
-This repository develops **OST-QAOA**, a *noncommutative operator-spectral truncated prior* for query-efficient parameter selection in the Quantum Approximate Optimization Algorithm (QAOA). It transports the spectral-truncation–kernel construction of noncommutative $C^{*}$-algebraic kernel machines into variational quantum optimization, and is released as the installable package [`uq-qaoa`](submission/code) that regenerates every figure, table, and number in the [manuscript](submission/main.tex) from a single deterministic seed.
+This repository develops **OST-QAOA**, a *noncommutative operator-spectral truncated prior* for query-efficient parameter selection in the Quantum Approximate Optimization Algorithm (QAOA). It transports the spectral-truncation–kernel construction of noncommutative $C^{*}$-algebraic kernel machines into variational quantum optimization, and is released as the installable package [`uq-qaoa`](submission/code) that regenerates every figure, table, and number in the [manuscript](submission/main.pdf) from a single deterministic seed.
 
 ---
 
 ## Principal contribution
 
-> **Manuscript:** *Operator-Spectral Truncated Priors for Query-Efficient Biomedical QAOA Graph Optimization* — [`submission/main.tex`](submission/main.tex).
+> **Manuscript:** *Operator-Spectral Truncated Priors for Query-Efficient QAOA Parameter Search* — [`submission/main.pdf`](submission/main.pdf).
 > **Reproducible artifact:** [`submission/code/`](submission/code).
 
 For low-depth QAOA the dominant practical cost is the number of objective-function *queries* required to tune the variational angles on each graph. A warm-start point alone is insufficient: the optimizer must also decide *which angle directions* deserve exploration under a fixed query budget. OST-QAOA answers this by learning and searching in **operator space** rather than in parameter-vector space.
@@ -31,7 +31,7 @@ with objective $f_G(\theta)=\langle\psi_G(\theta)\lvert H_C(G)\rvert\psi_G(\thet
 $$
 \mathcal O_{G,r}=U_r\Lambda_r U_r^{\top},
 \qquad
-\Sigma_G=\beta\,\frac{\mathcal O_{G,r}}{\operatorname{tr}\mathcal O_{G,r}}+\Bigl(1-\tfrac{\beta}{2}\Bigr)\frac{\Sigma_G^{\mathrm{nbr}}}{\operatorname{tr}\Sigma_G^{\mathrm{nbr}}}+\epsilon I .
+\Sigma_G=\beta\,\frac{\mathcal O_{G,r}}{\mathrm{tr}\,\mathcal O_{G,r}}+\Bigl(1-\tfrac{\beta}{2}\Bigr)\frac{\Sigma_G^{\mathrm{nbr}}}{\mathrm{tr}\,\Sigma_G^{\mathrm{nbr}}}+\epsilon I .
 $$
 
 The truncated, operator-dominated covariance ($\beta=0.8$) supplies the **collective, cross-coordinate search directions**: the query policy probes the leading eigenvectors of $\Sigma_G$ — not the raw angle coordinates — around the operator-derived posterior mean, with step sizes proportional to the directional standard deviation.
