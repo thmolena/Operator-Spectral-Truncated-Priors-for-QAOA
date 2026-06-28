@@ -7,6 +7,8 @@
 
 This repository develops **OST-QAOA**, a *noncommutative operator-spectral truncated prior* for query-efficient parameter selection in the Quantum Approximate Optimization Algorithm (QAOA). It transports the spectral-truncation–kernel construction of noncommutative $C^{*}$-algebraic kernel machines into variational quantum optimization, and is released as the installable package [`uq-qaoa`](submission/code) that regenerates every figure, table, and number in the [manuscript](submission/main.pdf) from a single deterministic seed.
 
+> **AI for quantum, at HPC scale.** OST-QAOA *learns its search directions in operator space* from a library of training graphs — algorithm design by learning, not per-instance hand-tuning — and spends the saved budget where it is scarcest: objective queries to the quantum device (a **2.2× query reduction** to comparable quality). The objective is an exact statevector expectation, precisely the workload that GPU statevector backends (NVIDIA cuQuantum / cuStateVec) are built to accelerate, so the method scales along the axis modern quantum simulation actually runs on. The reference package is deterministic and `pip`-installable, regenerating every number from one seed.
+
 ---
 
 ## Principal contribution
