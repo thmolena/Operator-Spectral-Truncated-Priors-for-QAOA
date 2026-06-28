@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uq-qaoa"
-version = "1.0.0"
-description = "Uncertainty-calibrated trust regions for query-efficient QAOA parameter search: configurable-depth reference package and deterministic reproduction artifact."
+version = "1.2.0"
+description = "Noncommutative operator-spectral truncated priors (OST-QAOA) for query-efficient QAOA parameter search: installable package and deterministic manuscript artifact."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -15,6 +15,8 @@ keywords = [
     "QAOA",
     "quantum-optimization",
     "graph-neural-networks",
+    "operator-valued-kernels",
+    "spectral-truncation",
     "uncertainty-quantification",
     "trust-region",
     "MaxCut",
@@ -50,6 +52,7 @@ Repository = "https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biome
 
 [project.scripts]
 uqqaoa-reproduce = "uq_qaoa.reproduce:main"
+uqqaoa-artifacts = "uq_qaoa.paper_artifacts:main"
 
 [tool.setuptools]
 package-dir = {"" = "python"}

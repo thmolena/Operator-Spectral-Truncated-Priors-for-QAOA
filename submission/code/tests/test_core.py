@@ -13,6 +13,7 @@ from uq_qaoa.priors import theta_tqa, theta_global
 from uq_qaoa.posterior import fuse_diagonal_priors
 from uq_qaoa.search_policy import uq_qaoa_search
 from uq_qaoa.baselines import tqa_refine
+from uq_qaoa.operator_spectral import build_operator_library, operator_prior, ost_qaoa_search, spectral_operator_matrix
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -83,3 +84,27 @@ def test_search_budget_accounting():
     assert len(res.trace) <= 7
     base = tqa_refine(obj, p, 7)
     assert len(base.trace) <= 7
+
+
+def test_operator_spectral_prior_shapes():
+    p = 2
+    graph = generate_graph("cycle", 6, 11)
+    op, comm_norm, eff_rank = spectral_operator_matrix(graph, p, rank=2)
+    assert op.shape == (2 * p, 2 * p)
+    assert comm_norm >= 0.0
+    assert eff_rank >= 1.0
+    library = build_operator_library(
+        p=p,
+        families=("cycle",),
+        sizes=(6,),
+        train_per_family=2,
+        rank=2,
+        optimizer_budget=8,
+        seed=123,
+    )
+    prior = operator_prior(graph, library, k=2)
+    assert prior.mean.shape == (2 * p,)
+    assert prior.covariance.shape == (2 * p, 2 * p)
+    result = ost_qaoa_search(graph, library, budget=6, k=2)
+    assert np.isfinite(result.y_hat)
+    assert len(result.trace) <= 6

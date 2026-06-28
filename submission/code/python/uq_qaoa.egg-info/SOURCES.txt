@@ -10,6 +10,8 @@ python/uq_qaoa/graphs.py
 python/uq_qaoa/hardware.py
 python/uq_qaoa/maxcut.py
 python/uq_qaoa/metrics.py
+python/uq_qaoa/operator_spectral.py
+python/uq_qaoa/paper_artifacts.py
 python/uq_qaoa/plotting.py
 python/uq_qaoa/posterior.py
 python/uq_qaoa/priors.py

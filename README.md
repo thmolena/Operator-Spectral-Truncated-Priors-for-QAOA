@@ -1,31 +1,24 @@
-# Hybrid Quantum–Graph AI: Graph-Conditioned Learning for QAOA and Biomedical Optimization
+# Operator-Spectral Truncated Priors for Query-Efficient QAOA (OST-QAOA)
 
 [![Project Website](https://img.shields.io/badge/Project_Website-Open-0f766e?style=for-the-badge)](https://thmolena.github.io/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/)
-[![Paper](https://img.shields.io/badge/Paper-UQ--QAOA-1d4ed8?style=for-the-badge)](submission/main.tex)
+[![Paper](https://img.shields.io/badge/Paper-OST--QAOA-1d4ed8?style=for-the-badge)](submission/main.tex)
 [![Code Artifact](https://img.shields.io/badge/Reproducible_Code-submission%2Fcode-7c3aed?style=for-the-badge)](submission/code)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111827?style=for-the-badge)](LICENSE)
 
-This repository develops graph-conditioned machine learning for variational quantum optimization and for graph-structured biomedical inference. Its unifying thesis is that two apparently distinct decision problems—selecting variational parameters for the Quantum Approximate Optimization Algorithm (QAOA) and predicting node-level clinical risk—admit one formulation: learning a map from a structured graph to a calibrated parameterization of a downstream objective.
-
-The repository is organized around two connected parts together with the artifacts (paper, code, notebooks, website) that support them.
-
-| Part | Scope | Location |
-|---|---|---|
-| **Query-efficient QAOA parameter search** *(principal contribution)* | Conversion of graph-conditioned predictive uncertainty into an operational trust-region geometry that allocates a fixed QAOA query budget against single-source warm starts and black-box optimizers. | [`submission/`](submission) — manuscript and reproducible code artifact |
-| **Graph-conditioned learning across domains** | A single graph-conditioned learning interface applied to per-instance QAOA initialization and to biomedical risk prediction on patient-similarity graphs. | [`src/`](src), [`experiments/`](experiments), [`notebooks/`](notebooks) |
+This repository develops **OST-QAOA**, a *noncommutative operator-spectral truncated prior* for query-efficient parameter selection in the Quantum Approximate Optimization Algorithm (QAOA). It transports the spectral-truncation–kernel construction of noncommutative $C^{*}$-algebraic kernel machines into variational quantum optimization, and is released as the installable package [`uq-qaoa`](submission/code) that regenerates every figure, table, and number in the [manuscript](submission/main.tex) from a single deterministic seed.
 
 ---
 
-## Principal contribution: UQ-QAOA — Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA
+## Principal contribution
 
-> **Manuscript:** *Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search* — [`submission/main.tex`](submission/main.tex).
-> **Code artifact (deterministically reproducible):** [`submission/code/`](submission/code).
+> **Manuscript:** *Operator-Spectral Truncated Priors for Query-Efficient Biomedical QAOA Graph Optimization* — [`submission/main.tex`](submission/main.tex).
+> **Reproducible artifact:** [`submission/code/`](submission/code).
 
-For low-depth QAOA the dominant practical cost is the number of objective-function *queries* required to identify useful variational parameters. UQ-QAOA repurposes a graph neural network's *predictive covariance* as the metric that defines the local search geometry, rather than as a confidence score.
+For low-depth QAOA the dominant practical cost is the number of objective-function *queries* required to tune the variational angles on each graph. A warm-start point alone is insufficient: the optimizer must also decide *which angle directions* deserve exploration under a fixed query budget. OST-QAOA answers this by learning and searching in **operator space** rather than in parameter-vector space.
 
-### Problem setting
+### Method
 
-For a graph $G=(V,E)$ the MaxCut cost Hamiltonian is
+For a graph $G=(V,E)$ the MaxCut cost Hamiltonian and depth-$p$ state are
 
 $$
 H_C(G)=\sum_{(i,j)\in E}\tfrac{1-Z_iZ_j}{2},
@@ -33,151 +26,86 @@ H_C(G)=\sum_{(i,j)\in E}\tfrac{1-Z_iZ_j}{2},
 \lvert\psi_G(\theta)\rangle=\prod_{\ell=1}^{p}e^{-i\beta_\ell H_M}\,e^{-i\gamma_\ell H_C(G)}\,\lvert+\rangle^{\otimes n},
 $$
 
-with mixer $H_M=\sum_i X_i$ and objective $f_G(\theta)=\langle\psi_G(\theta)\lvert H_C(G)\rvert\psi_G(\theta)\rangle$. Cost is measured in objective queries $Q$ (the number of distinct $\theta$ evaluated), and performance is reported as the best-so-far approximation ratio $Q\mapsto\max_{q\le Q} r_G(\theta_q)$, with $r_G=f_G/C_G^\star$.
-
-### Method
-
-A Graph Isomorphism Network (GIN) with spectral positional features predicts a diagonal Gaussian over the QAOA angles,
+with objective $f_G(\theta)=\langle\psi_G(\theta)\lvert H_C(G)\rvert\psi_G(\theta)\rangle$ and approximation ratio $r_G=f_G/C_G^\star$. OST-QAOA maps $G$ to two **noncommuting** $2p\times2p$ angle-space operators $\mathcal A_G,\mathcal B_G$ built from the graph Laplacian spectrum, degree moments, and topology features. Their commutator $\mathcal C_G=[\mathcal A_G,\mathcal B_G]$ enters a single raw operator $\mathcal O_G$, which is **spectrally truncated** to a rank-$n$ covariance
 
 $$
-q_\phi(\theta\mid G)=\mathcal N\!\big(\mu_\phi(G),\,\Sigma_\phi(G)\big),
+\mathcal O_{G,r}=U_r\Lambda_r U_r^{\top},
 \qquad
-\Sigma_\phi(G)=\mathrm{diag}\big(\sigma_{\min}^2+\mathrm{softplus}(a_{\phi}(G))\big),
+\Sigma_G=\beta\,\frac{\mathcal O_{G,r}}{\operatorname{tr}\mathcal O_{G,r}}+\Bigl(1-\tfrac{\beta}{2}\Bigr)\frac{\Sigma_G^{\mathrm{nbr}}}{\operatorname{tr}\Sigma_G^{\mathrm{nbr}}}+\epsilon I .
 $$
 
-trained by Gaussian negative log-likelihood with weight decay. Four information sources—the GIN predictor, a local $k{=}5$ nearest-neighbour prior, a global population prior, and a trotterized quantum-annealing (TQA) schedule—are fused by **precision-weighted (inverse-variance) combination**:
+The truncated, operator-dominated covariance ($\beta=0.8$) supplies the **collective, cross-coordinate search directions**: the query policy probes the leading eigenvectors of $\Sigma_G$ — not the raw angle coordinates — around the operator-derived posterior mean, with step sizes proportional to the directional standard deviation.
 
-$$
-\Sigma_{\mathrm{post}}^{-1}={\Sigma_{\mathrm{GIN}}'}^{-1}+\Sigma_{\mathrm{loc}}^{-1}+\Sigma_{\mathrm{glob}}^{-1}+\Sigma_{\mathrm{TQA}}^{-1},
-\qquad
-\mu_{\mathrm{post}}=\Sigma_{\mathrm{post}}\!\!\sum_{s}\Sigma_s^{-1}\mu_s .
-$$
+### Theory
 
-The posterior covariance induces an anisotropic trust region $\mathcal T_{\phi,\rho}(G)=\{\theta:(\theta-\mu_\phi)^\top(\Sigma_\phi+\lambda I)^{-1}(\theta-\mu_\phi)\le\rho^2\}$ and per-coordinate step sizes $\delta_j=\mathrm{clip}\big(0.5\sqrt{[\Sigma_{\mathrm{post}}]_{jj}},\,0.05,\,0.30\big)$. The search proceeds in three budget-accounted phases: a **TQA safety prefix** (dominance-preserving relative to the strongest physics-informed baseline), deterministic posterior-anchor evaluation, and **sequential greedy coordinate refinement** with trust-region contraction (step halving on stagnation).
+The manuscript proves that $\Sigma_G$ is positive definite and Loewner-contractive, that the construction reduces to the **commutative diagonal prior** in the single-direction limit ($n\to1$), and that the expected number of objective queries to reach a target ratio scales with the prior's **effective dimension** $d_{\mathrm{eff}}(n)=(\sum_j\lambda_j)^2/\sum_j\lambda_j^2$, which the truncation minimizes. This is the *query-budget analogue* of the representation-versus-complexity tradeoff of spectral-truncation kernels: the truncation parameter $n$ trades near-optimal coverage against the number of objective queries, and the predicted **interior optimum** $n^\star$ is observed empirically.
 
-### Scope of the guarantees
+### Main result (exact-statevector MaxCut, $p{=}3$, $Q{=}24$, rank $4$, commutator weight $4.0$, seed $260424803$, 16 held-out graphs)
 
-A best-of-$K$ guarantee makes the geometric intuition precise: when the proposal places mass $\alpha_G(\varepsilon)$ on the $\varepsilon$-optimal subset of the trust region, $K\ge\log(1/\delta)/\alpha_G(\varepsilon)$ samples suffice for $f_G(\widehat\theta_K)\ge f_G^{\mathcal T}-\varepsilon$ with probability $1-\delta$; a finite-shot extension adds a sub-Gaussian union bound, and a conformal construction yields finite-sample coverage under exchangeability. The guarantees are local and conditional by design: they formalize the regime in which a calibrated, compact region saves queries, and they remain distinct from global QAOA optimality.
+Mean approximation ratio with 95% interval and paired difference versus a budget-matched TQA coordinate-refinement baseline, transcribed from [`submission/code/tables/table01_headline.csv`](submission/code/tables/table01_headline.csv):
 
-### Main result (controlled exact-statevector benchmark, $n{=}14$, $p{=}3$, $Q{=}18$ matched queries)
+| Method | Mean ratio ↑ | $\Delta$ vs. TQA+coord. [95% CI] | Wins | $\bar Q_{0.98}$ ↓ |
+|---|---|---|---|---|
+| Random | 0.743 ± 0.028 | +0.035 [+0.001, +0.070] | 11/16 | 24.1 |
+| TQA | 0.614 ± 0.030 | −0.093 [−0.156, −0.040] | 0/16 | 25.0 |
+| TQA + coordinate | 0.708 ± 0.038 | 0.000 | — | 25.0 |
+| $k$-NN + coordinate | 0.740 ± 0.042 | +0.032 [+0.012, +0.056] | 13/16 | 23.6 |
+| OST diagonal | 0.806 ± 0.020 | +0.099 [+0.067, +0.130] | 15/16 | 14.4 |
+| **OST-QAOA (ours)** | **0.818 ± 0.018** | **+0.110 [+0.080, +0.141]** | **16/16** | **11.6** |
 
-Mean approximation ratio (higher is better), with 95% bootstrap confidence interval and paired difference relative to TQA, transcribed from [`submission/code/tables/table01_computational_efficiency.csv`](submission/code/tables/table01_computational_efficiency.csv):
+OST-QAOA is the strongest method under the matched query budget, winning on **16/16** paired held-out graphs (sign-test $p<10^{-4}$) and reaching 98% of the best observed ratio in **11.6** queries against **25.0** for the baseline — a **2.2× query reduction** ($\bar Q_{0.98}$). A truncation sweep over $n\in\{1,\dots,2p\}$ exhibits the predicted interior optimum at $n^\star{=}4$ (under-truncation at $n{=}1$ and no truncation at $n{=}2p$ both degrade), with effective dimension rising monotonically from 2.50 to 3.65 ([`tables/table05_truncation.csv`](submission/code/tables/table05_truncation.csv)). Restricting the search to diagonal (commutative) directions removes a measurable part of the advantage (0.806, −0.012), localizing the gain to the off-diagonal operator geometry ([`tables/table02_ablation.csv`](submission/code/tables/table02_ablation.csv)). The reported margin is configuration-dependent and the audit-sized exact-statevector benchmark is not a hardware-scale deployment claim; it is a controlled, fully reproducible method study.
 
-| Method | Mean approx. ratio ↑ | 95% bootstrap CI | $\Delta$ vs. TQA |
-|---|---|---|---|
-| Random | 0.754 | [0.719, 0.788] | −0.100 |
-| Heuristic | 0.608 | [0.568, 0.649] | −0.246 |
-| $k$-NN | 0.642 | [0.605, 0.676] | −0.211 |
-| GNN point | 0.643 | [0.598, 0.689] | −0.211 |
-| TQA | 0.853 | [0.829, 0.879] | +0.000 |
-| **UQ-QAOA (ours)** | **0.865** | **[0.839, 0.892]** | **+0.012** |
+---
 
-UQ-QAOA exceeds TQA on **7 of 8** held-out instances (paired advantage $+0.012$, 95% bootstrap CI $[+0.003,+0.024]$ over 10,000 resamples) and remains best-or-tied-best at every intermediate query budget. Differential evolution, GP-EI Bayesian optimization, CMA-ES, multi-seed random, and Nelder–Mead each reach at most $0.754$ under $Q{=}18$. The ablation isolates the largest single contribution to the local $k$-NN prior: removing it lowers the ratio to 0.645 (see [`submission/code/tables/table03_ablation.csv`](submission/code/tables/table03_ablation.csv)).
-
-**Higher-powered replication.** On a $6\times$ larger held-out set of **48 instances** (12 per family, same protocol), the advantage holds at **+0.012** with a threefold tighter interval **[+0.008, +0.016]** and a **39/48** win rate — UQ-QAOA 0.862 versus TQA 0.850. This confirmation is generated by [`submission/code/table01_expanded.py`](submission/code/table01_expanded.py) and rendered by [`submission/code/fig05_expanded_benchmark.py`](submission/code/fig05_expanded_benchmark.py) (see [`tables/paired_uq_vs_tqa_expanded.csv`](submission/code/tables/paired_uq_vs_tqa_expanded.csv)).
-
-A C++20 reference backend documents the evaluator contract and records a $4.30\times$ speedup at 8 threads for batched $n{=}14$ evaluation, identifying the mixer kernel as the dominant per-layer cost ($2.60\times$ the cost-phase kernel; see [`tables/bench_thread_scaling.csv`](submission/code/tables/bench_thread_scaling.csv) and [`tables/bench_cpu_kernels.csv`](submission/code/tables/bench_cpu_kernels.csv)). The Python and C++ statevector implementations agree to a maximum absolute error of $5.3\times10^{-13}$ across all tested sizes ([`results/python_cpp_validation.csv`](submission/code/results/python_cpp_validation.csv)).
-
-The reported margin is configuration-dependent rather than a state-of-the-art claim. A controlled reassessment in the manuscript shows that granting the TQA baseline the same greedy coordinate-refinement budget used by UQ-QAOA reverses the ordering on the tested instances; UQ-QAOA is therefore framed as a method study of uncertainty-as-search-geometry.
-
-### Reproduce the principal results end-to-end
+## Reproduce the manuscript end-to-end
 
 ```bash
 cd submission/code
-pip install uq-qaoa                          # installs the uqqaoa-reproduce entry point
-# or, from the artifact checkout: pip install .
+pip install .                                   # installs the uqqaoa-reproduce / uqqaoa-artifacts entry points
 
-uqqaoa-reproduce                             # regenerate every figure and table (~2–5 min on the reference platform)
-uqqaoa-reproduce --smoke                     # fast end-to-end sanity pass
+# Regenerate every manuscript figure, table, CSV summary, and query trace:
+uqqaoa-reproduce --output-dir . --depth 3 --budget 24 --rank 4 --commutator-weight 4.0
+
+uqqaoa-reproduce --smoke                         # fast end-to-end sanity pass
 ```
 
-Equivalent direct invocation: `python generate_all.py`. Every output is deterministic given the global seed `260424803`. The mapping from each manuscript figure and table to its generating script is listed in the manuscript's *Reproducibility manifest* and in [`submission/code/README.md`](submission/code/README.md).
+Every output is a deterministic function of the global seed `260424803`. The same functionality is available through the Python API:
 
----
+```python
+from uq_qaoa import build_operator_library, ost_qaoa_search
+from uq_qaoa.graphs import generate_graph
 
-## Broader work: graph-conditioned learning across quantum optimization and biomedicine
+library = build_operator_library(p=3, rank=4, commutator_weight=4.0, train_per_family=6)
+graph   = generate_graph("random_regular", 10, 1234)
+result  = ost_qaoa_search(graph, library, budget=24)   # result.theta_hat, result.y_hat, result.trace
+```
 
-This part of the repository applies the same modeling interface—graph in, calibrated parameterization out—in two domains.
-
-- **Transcriptomic QAOA initialization.** A graph-conditioned GNN predicts depth-2 QAOA angles $(\gamma_1,\gamma_2,\beta_1,\beta_2)$ for MaxCut on prostate transcriptomic co-expression graphs. It reaches a **0.8682** held-out mean approximation ratio against **0.8686** for direct classical search (Nelder–Mead), while reducing median inference from 675.9 ms to **0.256 ms** (≈ 2640× faster) and improving the prior learned baseline (0.8208) by +0.0474 absolute. Source: [`notebooks/qaoa_demo.ipynb`](notebooks/qaoa_demo.ipynb).
-- **Cardiotocography (CTG) screening.** A residual clinical GCN on a patient-similarity graph attains **98.8%** accuracy, **0.942** balanced accuracy, and **0.978** ROC AUC on a held-out split ($n=426$, 35 pathologic), improving the simpler graph baseline by +2.1 points accuracy and matching the strongest tabular models on false-positive count. Source: [`notebooks/bio_demo.ipynb`](notebooks/bio_demo.ipynb).
-
-The contribution is bounded by design: it is a unified, transferable graph-learning framework with strong held-out performance, stated independently of universal superiority over every classical baseline.
-
-| Metric | Better | Meaning |
-|---|---|---|
-| Approximation ratio | higher | fraction of optimal MaxCut value recovered |
-| Balanced accuracy | higher | mean recall across classes (informative under class imbalance) |
-| ROC AUC | higher | probability a pathologic case is ranked above a normal case |
-
----
-
-## Interactive notebooks
-
-| Notebook | Role | Contents |
-|---|---|---|
-| [`notebooks/quantum_ai_bio_combined.ipynb`](notebooks/quantum_ai_bio_combined.ipynb) | Integrated analysis | Shared graph-conditioned formulation spanning both branches |
-| [`notebooks/qaoa_demo.ipynb`](notebooks/qaoa_demo.ipynb) | QAOA analysis | Transcriptomic graphs, depth-2 statevector simulation, initializer comparison, ablations |
-| [`notebooks/bio_demo.ipynb`](notebooks/bio_demo.ipynb) | Biomedical analysis | Split-first preprocessing, $k$-NN graph construction, graph-versus-tabular evaluation |
-
-Static HTML renders reside in [`website/notebooks_html/`](website/notebooks_html) and are surfaced on the project website.
+The mapping from each manuscript display item to its generating function is listed in the manuscript's artifact manifest and in [`submission/code/README.md`](submission/code/README.md).
 
 ---
 
 ## Repository layout
 
 ```text
-submission/        UQ-QAOA manuscript (main.tex) and code/ artifact
-  code/            reproducible Python package (python/uq_qaoa/), C++20 backend (cpp/),
-                   figure/table/experiment scripts, configs, results, tests, reproduce.sh
-notebooks/         core analyses and demonstration notebooks (broader work)
-experiments/       baseline scripts and extracted evaluations (broader work)
-src/               models, simulators, utilities, and serving code (broader work)
-data/              source biomedical and transcriptomic inputs
-outputs/           processed datasets, tables, and generated results
-website/           static-site assets, exported notebook HTML, and paper PDF
-index.html         project landing page (GitHub Pages entry point)
+submission/
+  main.tex         OST-QAOA manuscript (operator construction, theory, experiments)
+  main.pdf         compiled manuscript
+  code/            installable package `uq-qaoa` (python/uq_qaoa/), figure/table/CSV
+                   artifacts, configs, results, and the deterministic artifact driver
+notebooks/         companion graph-conditioned learning analyses (broader work)
+experiments/ src/  baseline scripts, models, simulators, and serving code (broader work)
+data/ outputs/     source inputs and processed results (broader work)
+website/ index.html project landing page (GitHub Pages entry point)
 ```
-
----
-
-## Reproducibility (notebooks and baselines)
-
-```bash
-pip install -r requirements.txt
-
-# Notebooks
-jupyter notebook notebooks/quantum_ai_bio_combined.ipynb
-jupyter notebook notebooks/qaoa_demo.ipynb
-jupyter notebook notebooks/bio_demo.ipynb
-
-# Extracted baselines
-python experiments/qaoa/run_qaoa_baselines.py
-python experiments/biomedical/run_bio_baselines.py
-```
-
-### Local website and prediction demo
-
-The landing page [`index.html`](index.html) includes an optional live QAOA-angle prediction demo backed by a small Flask service.
-
-```bash
-# 1) Start the prediction API from the repository root
-FLASK_APP=src.server flask run --host=0.0.0.0 --port=5000
-# 2) Serve the website
-python -m http.server 8000
-# 3) Open http://localhost:8000/index.html
-```
-
-`website/demo.js` posts to `http://localhost:5000/predict` by default; set `window.API_BASE_URL` before loading it to target another endpoint.
 
 ---
 
 ## Citation
 
 ```bibtex
-@misc{huynh2026uqqaoa,
+@misc{huynh2026ostqaoa,
   author       = {Huynh, Molena},
-  title        = {Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search},
+  title        = {Operator-Spectral Truncated Priors for Query-Efficient QAOA},
   year         = {2026},
   howpublished = {Code and manuscript},
   note         = {North Carolina State University; molena.huynh@jmp.com},

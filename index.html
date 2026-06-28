@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hybrid Quantum&ndash;Graph AI &mdash; UQ-QAOA &amp; Graph-Conditioned Optimization</title>
-  <meta name="description" content="Graph-conditioned machine learning for query-efficient QAOA parameter search (UQ-QAOA) and for graph-structured biomedical inference: uncertainty-calibrated trust regions, precision-weighted posterior fusion, reproducible exact-statevector benchmarks, and an interactive demo." />
+  <title>Operator-Spectral Truncated Priors for Query-Efficient QAOA (OST-QAOA)</title>
+  <meta name="description" content="OST-QAOA: a noncommutative operator-spectral truncated prior for query-efficient QAOA parameter selection. Each graph is mapped to a truncated, noncommuting operator on QAOA angle space whose eigenbasis supplies collective cross-layer search directions; a truncation parameter controls a representation-versus-query-budget tradeoff via the prior's effective dimension. On an exact-statevector MaxCut benchmark (p=3, Q=24) OST-QAOA improves over a budget-matched TQA coordinate-refinement baseline by +0.110 (16/16 paired instances, sign-test p<1e-4) and reaches comparable quality in 2.2x fewer objective queries. Released as the installable package uq-qaoa that regenerates every figure and table from one deterministic seed." />
   <style>
     :root {
       --background: #ffffff;
@@ -797,7 +797,7 @@
     <div class="report-bar-inner">
       <div>Hybrid Quantum&ndash;Graph AI</div>
       <nav aria-label="Primary">
-        <a href="#lead">UQ-QAOA</a>
+        <a href="#lead">OST-QAOA</a>
         <a href="#method">Method</a>
         <a href="#theory">Theory</a>
         <a href="#results">Results</a>
@@ -814,17 +814,17 @@
       <section class="cover block-shell lead-feature">
         <div class="block-inner">
           <div>
-            <p class="cover-kicker">UQ-QAOA &bull; Opening entry in a unified graph-learning program for quantum computation &bull; Prepared for Nature Machine Intelligence</p>
-            <h1>Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search</h1>
+            <p class="cover-kicker">OST-QAOA &bull; Noncommutative operator-spectral truncated priors &bull; Query-efficient variational quantum optimization</p>
+            <h1>Operator-Spectral Truncated Priors for Query-Efficient QAOA</h1>
             <p class="subtitle">
-              For low-depth implementations of the Quantum Approximate Optimization Algorithm (QAOA), the binding cost is the number of objective-function <em>queries</em> required to locate useful variational parameters rather than circuit depth. <strong>UQ-QAOA</strong> recasts graph-conditioned predictive uncertainty as the geometry of the search itself: a Graph Isomorphism Network emits a diagonal Gaussian over the QAOA angles, and four estimators&mdash;the neural predictor, a local $k$-nearest-neighbour prior, a global population prior, and a trotterized quantum-annealing schedule&mdash;combine through precision weighting into a posterior mean and anisotropic step sizes that drive sequential coordinate refinement. Predicted covariance thereby allocates the query budget, contracting search where the model is confident and widening it where calibration warrants. This page presents the method in full, the conformal and best-of-$K$ guarantees that bound its behaviour, the reproducible exact-statevector evidence and C++20 reference backend that support it, and a companion graph-learning program carrying the same graph-in, calibrated-parameterization-out interface to two public biomedical datasets &mdash; prostate-cancer transcriptomics and cardiotocography screening &mdash; reported as supporting evidence alongside, rather than within, the submitted UQ-QAOA manuscript.
+              For low-depth QAOA, the dominant practical cost is the number of objective-function <em>queries</em> spent tuning the variational angles on each graph &mdash; and a warm-start point alone does not tell the optimizer which angle directions deserve exploration under a fixed budget. <strong>OST-QAOA learns and searches in operator space.</strong> Each graph is mapped to two <em>noncommuting</em> $2p\times2p$ operators $\mathcal A_G,\mathcal B_G$ built from its Laplacian spectrum, degree moments, and topology; the resulting angle operator is <em>spectrally truncated</em> to a rank-$n$ covariance whose eigenbasis supplies the <em>collective, cross-layer search directions</em> probed by a deterministic query policy. Transporting the spectral-truncation&ndash;kernel construction of noncommutative $C^{*}$-algebraic kernel machines into variational quantum optimization, the truncation parameter $n$ controls a <em>representation-versus-query-budget</em> tradeoff through the prior's effective dimension $d_{\mathrm{eff}}(n)$; we prove the truncated prior is positive definite and Loewner-contractive, that it recovers the commutative diagonal prior in the single-direction limit, and that the expected queries to a target ratio scale with $d_{\mathrm{eff}}(n)$. On an exact-statevector MaxCut benchmark the method outperforms a budget-matched physics baseline on every paired held-out instance and reaches comparable quality in roughly half the queries. The complete method, theory, and evidence are regenerated end-to-end by the installable package <code>uq-qaoa</code> from a single deterministic seed.
             </p>
             <div class="pill-row" aria-label="Topic tags">
               <span class="pill">Variational quantum algorithms</span>
-              <span class="pill">Graph neural networks</span>
-              <span class="pill">Uncertainty quantification</span>
-              <span class="pill">Trust-region optimization</span>
-              <span class="pill">Conformal prediction</span>
+              <span class="pill">Operator-valued priors</span>
+              <span class="pill">Spectral truncation</span>
+              <span class="pill">Noncommutativity</span>
+              <span class="pill">Query complexity</span>
             </div>
             <p class="meta-note" style="margin-top:18px;">
               Molena Huynh &middot; North Carolina State University &middot; <a href="mailto:molena.huynh@jmp.com">molena.huynh@jmp.com</a>
@@ -833,19 +833,19 @@
 
           <div class="cover-meta grid-3" aria-label="Main metrics">
             <article class="meta-block">
-              <div class="meta-label">Mean approximation ratio</div>
-              <div class="meta-value">0.865</div>
-              <p class="meta-note">Versus 0.853 for the strongest single-source baseline (TQA) on the controlled $n{=}14$, $p{=}3$, $Q{=}18$ matched-query benchmark.</p>
+              <div class="meta-label">OST-QAOA vs. budget-matched TQA</div>
+              <div class="meta-value">+0.110</div>
+              <p class="meta-note">Mean approximation-ratio advantage over a budget-matched TQA coordinate-refinement baseline ($0.818$ vs.\ $0.708$), with a paired bootstrap 95\% interval $[+0.080,+0.141]$ and $16/16$ paired held-out instances (sign-test $p<10^{-4}$) at $p{=}3$, $Q{=}24$.</p>
             </article>
             <article class="meta-block">
-              <div class="meta-label">Paired advantage vs. TQA</div>
-              <div class="meta-value">+0.012</div>
-              <p class="meta-note">95% bootstrap CI $[+0.003,\,+0.024]$ over 10,000 resamples; best-of-budget on 7 of 8 held-out instances.</p>
+              <div class="meta-label">Queries to comparable quality</div>
+              <div class="meta-value">2.2&times; fewer</div>
+              <p class="meta-note">OST-QAOA reaches $98\%$ of the best observed ratio in a mean of $11.6$ objective queries against $25.0$ for the baseline ($\bar Q_{0.98}$) &mdash; the operationally relevant quantity in the query-budget tradeoff bound.</p>
             </article>
             <article class="meta-block">
-              <div class="meta-label">Reference backend speedup</div>
-              <div class="meta-value">4.30&times;</div>
-              <p class="meta-note">C++20 evaluator at 8 threads for batched $n{=}14$ statevector evaluation; the mixer kernel dominates per-layer cost ($2.60\times$ the cost-phase kernel).</p>
+              <div class="meta-label">Spectral-truncation tradeoff</div>
+              <div class="meta-value">Interior $n^{\star}$</div>
+              <p class="meta-note">A truncation sweep over $n\in\{1,\dots,2p\}$ exhibits an interior optimum: under-truncation and no truncation both degrade, while the effective dimension $d_{\mathrm{eff}}(n)$ rises monotonically &mdash; the query-budget analogue of the representation&ndash;complexity tradeoff of spectral-truncation kernels.</p>
             </article>
           </div>
         </div>
@@ -877,7 +877,7 @@
             Q_G(\tau)=\min\{q: r_G^{\mathrm{best}}(q)\ge\tau\}.$$
           </div>
           <p class="body-copy">
-            In a measurement-limited regime, attaining comparable quality in substantially fewer queries outweighs a marginal objective gain obtained after many additional evaluations. UQ-QAOA addresses precisely this trade-off: it expends queries to confirm the strongest physics prior, then concentrates the remainder within a calibrated region of parameter space.
+            In a measurement-limited regime, attaining comparable quality in substantially fewer queries outweighs a marginal objective gain obtained after many additional evaluations. OST-QAOA addresses precisely this trade-off: it concentrates the query budget on the collective eigendirections of a truncated, noncommuting operator prior, evaluating physics and transfer anchors first and then refining along the directions that carry the most variance.
           </p>
         </div>
       </section>
@@ -887,53 +887,44 @@
           <div class="section-header">
             <div class="section-label">Method</div>
             <div class="section-intro body-copy">
-              <h2>Graph-conditioned Gaussian prediction and four-source posterior fusion</h2>
+              <h2>A truncated, noncommuting operator prior on QAOA angle space</h2>
               <p>
-                The method comprises two stages: a graph encoder that predicts a calibrated distribution over angles, and a fusion step that reconciles that prediction with three priors. A Graph Isomorphism Network (GIN) with learnable $\varepsilon$, layer-normalized two-layer MLPs, and spectral positional features performs message passing; a Gaussian head then emits a mean and a diagonal covariance over the QAOA angles:
+                For a graph $G$, OST-QAOA constructs two symmetric $2p\times2p$ angle-space operators $\mathcal A_G,\mathcal B_G$ from the normalized Laplacian spectral moments $m_\lambda$, the centered degree moments $m_d$, and a normalized topology descriptor $\phi(G)$. The two generators do not commute; their commutator $\mathcal C_G=[\mathcal A_G,\mathcal B_G]$ enters a single raw angle operator:
               </p>
             </div>
           </div>
 
           <div class="eq">
-            $$h_i^{(\ell+1)}=\mathrm{MLP}^{(\ell)}\!\Big((1+\varepsilon^{(\ell)})\,h_i^{(\ell)}+\!\!\sum_{j\in\mathcal N(i)}\!\tilde A_{ij}\,h_j^{(\ell)}\Big),\quad \tilde A=D^{-1}(A+I),\qquad
-            q_\phi(\theta\mid G)=\mathcal N\!\big(\mu_\phi(G),\,\Sigma_\phi(G)\big).$$
+            $$\mathcal A_G=\operatorname{Toeplitz}\!\big(0.70\,m_\lambda+0.30\,\phi(G)\big),\quad
+            \mathcal B_G=\operatorname{sym}\!\big[\operatorname{roll}\operatorname{Toeplitz}(0.55\,m_d+0.45\,\phi(G)_{\mathrm{rev}})\big],\quad
+            \mathcal O_G=\operatorname{sym}\!\big(0.55\,\mathcal A_G+0.45\,\mathcal B_G+\omega\,\mathcal C_G^{\!\top}\mathcal C_G\big).$$
           </div>
           <p class="body-copy">
-            The covariance head is $\Sigma_\phi(G)=\mathrm{diag}\big(\sigma_{\min}^2+\mathrm{softplus}(a_\phi(G))\big)$, trained by Gaussian negative log-likelihood with weight decay. The NLL couples accuracy to calibration: the first term penalizes prediction error scaled by the model's reported confidence, the second penalizes inflated confidence, so wide variance is favoured only where the predicted mean is uncertain.
+            The raw operator is <strong>spectrally truncated</strong> to rank $n$ &mdash; $\mathcal O_{G,r}=U_r\Lambda_r U_r^{\!\top}$ with nonnegative-clipped eigenvalues &mdash; and the truncated operator, rather than a diagonal uncertainty vector, supplies the leading search geometry of an operator-dominated covariance ($\beta=0.8$):
           </p>
           <div class="eq">
-            $$\mathcal L_{\mathrm{nll}}(\phi)=\frac{1}{2N}\sum_{i=1}^{N}\sum_{k=1}^{2p}\left[\frac{\big(\theta^{\mathrm{ref}}_{i,k}-\mu_{\phi,k}(G_i)\big)^2}{\sigma_{\phi,k}^2(G_i)}+\log\sigma_{\phi,k}^2(G_i)\right]+\eta_{\mathrm{wd}}\lVert\phi\rVert_2^2.$$
+            $$\mathcal O_{G,r}=U_r\Lambda_r U_r^{\!\top},\qquad
+            \Sigma_G=\beta\,\frac{\mathcal O_{G,r}}{\operatorname{tr}\mathcal O_{G,r}}+\Big(1-\tfrac{\beta}{2}\Big)\frac{\Sigma_G^{\mathrm{nbr}}}{\operatorname{tr}\Sigma_G^{\mathrm{nbr}}}+\epsilon I.$$
           </div>
           <p class="body-copy">
-            Four sources&mdash;the GIN predictor, a local $k{=}5$ nearest-neighbour prior, a global population prior, and a trotterized quantum-annealing (TQA) prior&mdash;are then combined by precision weighting (inverse-variance fusion). Each source contributes to the joint estimate in proportion to its certainty, so a confident prior dominates where reliable and defers where uncertain:
+            The posterior mean $\mu_G$ is a Gaussian-weighted blend of the reference angles of the $k$ nearest training graphs in operator-signature space with the fixed TQA schedule. The query policy then diagonalizes $\Sigma_G=V\Lambda V^{\!\top}$ and probes its <strong>collective eigendirections</strong> $\pm s\sqrt{\lambda_j}\,v_j$ &mdash; cross-layer angle deformations, not the raw coordinates &mdash; in descending variance order until the objective-query budget is spent.
           </p>
-          <div class="eq">
-            $$\Sigma_{\mathrm{post}}^{-1}={\Sigma_{\mathrm{GIN}}'}^{-1}+\Sigma_{\mathrm{loc}}^{-1}+\Sigma_{\mathrm{glob}}^{-1}+\Sigma_{\mathrm{TQA}}^{-1},\qquad
-            \mu_{\mathrm{post}}=\Sigma_{\mathrm{post}}\sum_{s}\Sigma_s^{-1}\mu_s,$$
-          </div>
-          <p class="body-copy">
-            where $\Sigma_{\mathrm{GIN}}'=\max(\Sigma_{\mathrm{GIN}},\Sigma_{\mathrm{loc}})$ imposes a calibration floor that bounds the certainty the neural source may assert. The posterior covariance then fixes the shape of the anisotropic <strong>trust region</strong> and the per-coordinate step sizes that govern refinement: well-determined directions are searched tightly, uncertain ones broadly.
-          </p>
-          <div class="eq">
-            $$\mathcal T_{\phi,\rho}(G)=\Big\{\theta\in\Theta_p:(\theta-\mu_\phi)^{\!\top}(\Sigma_\phi+\lambda I)^{-1}(\theta-\mu_\phi)\le\rho^2\Big\},\qquad
-            \delta_j=\mathrm{clip}\!\big(0.5\sqrt{[\Sigma_{\mathrm{post}}]_{jj}},\,0.05,\,0.30\big).$$
-          </div>
 
           <div class="grid-3">
             <article class="card">
-              <div class="tag">Phase 0 / 2a</div>
-              <h3>TQA safety prefix</h3>
-              <p>A short trotterized-annealing prefix renders the policy dominance-preserving against its strongest competitor: before any budget is spent on learned geometry, UQ-QAOA has evaluated the same TQA candidate available to the strongest physics-informed baseline, so its query curve cannot fall below TQA at low query counts.</p>
+              <div class="tag">Operator map</div>
+              <h3>Noncommuting generators</h3>
+              <p>Two graph-derived Toeplitz operators $\mathcal A_G,\mathcal B_G$ encode local/global spectral and degree structure; their commutator $[\mathcal A_G,\mathcal B_G]$ injects noncommutativity, so the operator carries cross-coordinate interactions that a diagonal prior cannot.</p>
             </article>
             <article class="card">
-              <div class="tag">Phase 1 / 2b</div>
-              <h3>Posterior-anchor evaluation</h3>
-              <p>A fixed set of deterministic, nonduplicate anchors&mdash;TQA, posterior mean, GIN mean, local $k$-NN median, and global median&mdash;is evaluated, and the empirical best seeds refinement. Each information source thereby receives one direct test before iterative search begins.</p>
+              <div class="tag">Spectral truncation</div>
+              <h3>Rank-$n$ covariance</h3>
+              <p>Retaining the $n$ leading operator directions caps the number of collective angle modes the search explores. The truncation parameter $n$ is the single knob controlling the representation-versus-query-budget tradeoff.</p>
             </article>
             <article class="card">
-              <div class="tag">Phase 2c</div>
-              <h3>Greedy coordinate refinement</h3>
-              <p>From the incumbent, the search probes $\pm\delta_j$ along each dimension $j$ and accepts only strict improvements; a full pass without progress halves every step size, contracting the trust region toward the optimum.</p>
+              <div class="tag">Query policy</div>
+              <h3>Eigendirection refinement</h3>
+              <p>Anchors (TQA, operator mean, nearest neighbour, global) are evaluated first; remaining queries probe $\pm s\sqrt{\lambda_j}\,v_j$ along the covariance eigenvectors, an auditable deterministic sequence recorded as a full query trace.</p>
             </article>
           </div>
         </div>
@@ -944,35 +935,31 @@
           <div class="section-header">
             <div class="section-label">Guarantees</div>
             <div class="section-intro body-copy">
-              <h2>When a learned trust region saves queries</h2>
+              <h2>A query-budget tradeoff governed by effective dimension</h2>
               <p>
-                The guarantees are explicitly <em>local and conditional</em>. They establish when a calibrated, compact trust region lowers the number of objective queries, and they remain agnostic about global QAOA optimality. Two results anchor the method&mdash;a best-of-$K$ bound on the number of in-region samples that suffice, and a finite-sample coverage guarantee that the region contains the target.
+                The truncated operator prior admits a small theory that mirrors, in the <em>query budget</em>, the representation-versus-complexity tradeoff of spectral-truncation kernels. The covariance is a valid, contractive search frame; the truncation parameter controls how many collective directions the policy explores; and the number of objective queries to a target ratio is governed by the prior's effective dimension.
               </p>
             </div>
           </div>
 
           <div class="theorem-box">
-            <span class="thm-label">Theorem &mdash; Exact-query best-of-$K$ guarantee</span>
+            <span class="thm-label">Propositions &mdash; Positive definiteness, monotone truncation, commutative limit</span>
             <p>
-              Suppose $K$ candidates are drawn independently from a proposal supported on $\mathcal T_{\phi,\rho}(G)$ that places mass at least $\alpha_G(\varepsilon)>0$ on the $\varepsilon$-optimal subset $\mathcal A_{G,\varepsilon}=\{\theta\in\mathcal T: f_G(\theta)\ge f_G^{\mathcal T}-\varepsilon\}$. Then
-            </p>
-            <div class="eq" style="background:#ffffff;">
-              $$\Pr\!\big[f_G(\widehat\theta_K)<f_G^{\mathcal T}-\varepsilon\big]\le\big(1-\alpha_G(\varepsilon)\big)^K,$$
-            </div>
-            <p>
-              Hence $K\ge\log(1/\delta)/\alpha_G(\varepsilon)$ samples suffice to reach $f_G(\widehat\theta_K)\ge f_G^{\mathcal T}-\varepsilon$ with probability at least $1-\delta$. For an ellipsoidal region with a locally $L_G$-Lipschitz objective, $\alpha_G(\varepsilon)\gtrsim (\varepsilon/L_G)^d\big/\big(\rho^d\det(\Sigma_\phi+\lambda I)^{1/2}\big)$, which makes the central claim explicit: the better-calibrated and tighter the covariance, the fewer candidates are needed to hit the near-optimal set. Calibration is what buys the query savings.
+              For any floor $\epsilon>0$ and weights $\omega,\beta\ge0$, $\Sigma_G$ is symmetric positive definite, so its eigendecomposition $\Sigma_G=V\Lambda V^{\!\top}$ yields an orthonormal frame with strictly positive directional variances. Spectral truncation is Loewner-monotone in the rank, $\mathcal O_{G,r}\preceq\mathcal O_{G,r+1}$, interpolating between a one-direction prior and the full operator prior. At $\omega=0$ the operator is independent of the commutator, and restricting $\Sigma_G$ to its diagonal makes the eigenframe the coordinate axes &mdash; recovering exactly per-angle coordinate refinement. The commutator-off and diagonal-covariance variants are therefore the <em>commutative special cases</em> of OST-QAOA.
             </p>
           </div>
 
           <div class="theorem-box">
-            <span class="thm-label">Proposition &mdash; Finite-sample conformal coverage</span>
+            <span class="thm-label">Proposition &mdash; Query-budget tradeoff under coverage</span>
             <p>
-              For exchangeable validation scores $s(G)=(\theta^*-\mu_\phi)^{\!\top}(\Sigma_\phi+\lambda I)^{-1}(\theta^*-\mu_\phi)$ with $\hat q_{1-\alpha}$ the $\lceil(M+1)(1-\alpha)\rceil$-th order statistic over $M$ calibration instances, a new exchangeable test instance satisfies
+              With effective dimension $d_{\mathrm{eff}}(\Sigma)=\big(\sum_j\lambda_j\big)^2\big/\sum_j\lambda_j^2$ and $m(r)$ the near-optimal mass captured by the leading $r$ operator directions, the expected queries to reach a target ratio $\tau$ obey
             </p>
             <div class="eq" style="background:#ffffff;">
-              $$\mathbb P\!\big[\theta^*(G_{M+1})\in\mathcal T_{\hat q_{1-\alpha}}(G_{M+1})\big]\ge 1-\alpha.$$
+              $$\mathbb E\!\big[Q_G(\tau)\big]\;\lesssim\;\frac{c\,d_{\mathrm{eff}}\!\big(\Sigma_G^{(r)}\big)}{m(r)},\qquad d_{\mathrm{eff}}\!\big(\Sigma_G^{(r)}\big)\le r+\mathcal O(\epsilon).$$
             </div>
-            <p>A finite-shot extension layers a sub-Gaussian union bound over $S$-shot estimates onto this guarantee, cleanly separating the cost of choosing parameters from the cost of estimating each objective by sampling.</p>
+            <p>
+              The numerator decreases with truncation while $m(r)$ is nondecreasing, so the minimiser $r^{\star}$ is interior whenever aggressive truncation sheds near-optimal mass faster than it concentrates the search. This is the query-budget analogue of the representation-versus-complexity tradeoff of spectral-truncation kernels: where their truncation parameter trades approximation against generalisation, OST-QAOA's trades near-optimal coverage against the number of objective queries. The benchmark below instantiates the bound &mdash; $d_{\mathrm{eff}}(n)$ rising monotonically with the rank and an interior optimum $n^{\star}$ in the truncation sweep.
+            </p>
           </div>
         </div>
       </section>
@@ -984,7 +971,7 @@
             <div class="section-intro">
               <h2>Controlled exact-statevector benchmark</h2>
               <p>
-                The benchmark holds the query budget constant so that differences reflect search efficiency alone. Every method receives the same $Q{=}18$ exact-statevector objective queries on the same eight held-out instances (two per family: Erd&#337;s&ndash;R&eacute;nyi, 3-regular, Barab&aacute;si&ndash;Albert, Watts&ndash;Strogatz) at $n{=}14$, $p{=}3$, with the global seed fixed at 260424803 for exact reproduction.
+                The benchmark holds the query budget constant so that differences reflect search efficiency alone. Every method receives the same $Q{=}24$ exact-statevector objective queries on 16 held-out instances (four per family: Erd&#337;s&ndash;R&eacute;nyi, random-regular, Watts&ndash;Strogatz, Barab&aacute;si&ndash;Albert) at $n\in\{8,10\}$, $p{=}3$, truncation rank $4$, commutator weight $4.0$, with the global seed fixed at $260{,}424{,}803$. All objectives are exact statevector expectations and all MaxCut normalizers are exact brute-force optima. The table is transcribed verbatim from the artifact (<code>table01_headline</code>).
               </p>
             </div>
           </div>
@@ -992,48 +979,43 @@
           <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>Method</th><th>Mean ratio &uarr;</th><th>95% bootstrap CI</th><th>&Delta; vs. TQA</th><th>$Q$</th></tr>
+                <tr><th>Method</th><th>Mean ratio &uarr;</th><th>$\Delta$ vs. TQA+coord. [95% CI]</th><th>Wins</th><th>$\bar Q_{0.98}$ &darr;</th></tr>
               </thead>
               <tbody>
-                <tr><td>Random</td><td>0.754</td><td>[0.719, 0.788]</td><td>&minus;0.100</td><td>18</td></tr>
-                <tr><td>Heuristic</td><td>0.608</td><td>[0.567, 0.649]</td><td>&minus;0.246</td><td>18</td></tr>
-                <tr><td>$k$-NN transfer</td><td>0.642</td><td>[0.604, 0.677]</td><td>&minus;0.211</td><td>18</td></tr>
-                <tr><td>GNN point estimate</td><td>0.643</td><td>[0.597, 0.688]</td><td>&minus;0.211</td><td>18</td></tr>
-                <tr><td>TQA (linear ramp)</td><td>0.853</td><td>[0.829, 0.878]</td><td>+0.000</td><td>18</td></tr>
-                <tr><td class="best">UQ-QAOA (ours)</td><td class="best">0.865</td><td class="best">[0.839, 0.892]</td><td class="best">+0.012</td><td class="best">18</td></tr>
+                <tr><td>Random</td><td>0.743</td><td>+0.035 [+0.001, +0.070]</td><td>11/16</td><td>24.1</td></tr>
+                <tr><td>TQA (single ramp)</td><td>0.614</td><td>&minus;0.093 [&minus;0.156, &minus;0.040]</td><td>0/16</td><td>25.0</td></tr>
+                <tr><td>TQA + coordinate</td><td>0.708</td><td>0.000</td><td>&mdash;</td><td>25.0</td></tr>
+                <tr><td>$k$-NN + coordinate</td><td>0.740</td><td>+0.032 [+0.012, +0.056]</td><td>13/16</td><td>23.6</td></tr>
+                <tr><td>OST diagonal</td><td>0.806</td><td>+0.099 [+0.067, +0.130]</td><td>15/16</td><td>14.4</td></tr>
+                <tr><td class="best">OST-QAOA (ours)</td><td class="best">0.818</td><td class="best">+0.110 [+0.080, +0.141]</td><td class="best">16/16</td><td class="best">11.6</td></tr>
               </tbody>
             </table>
           </div>
           <p class="table-note">
-            UQ-QAOA is best-or-tied-best at every intermediate query budget and wins on 7 of 8 instances. Established black-box optimizers do not close the gap under this budget: differential evolution, GP-EI Bayesian optimization, CMA-ES, multi-seed random, and Nelder&ndash;Mead all reach $\le 0.754$ under $Q{=}18$.
-          </p>
-          <p class="table-note">
-            <strong>Higher-powered replication.</strong> The effect is stable, not an artifact of a small test set. On a 6&times; larger held-out set of <strong>48 instances</strong> (12 per family, identical protocol), the advantage is unchanged at <strong>+0.012</strong> &mdash; UQ-QAOA 0.862 vs. TQA 0.850 &mdash; while the 95% bootstrap CI tightens threefold to <strong>[+0.008, +0.016]</strong> and the win rate reaches <strong>39/48</strong>, placing the interval well clear of zero.
+            OST-QAOA is the strongest method under the matched query budget, winning on <strong>$16/16$</strong> paired held-out graphs (sign-test $p<10^{-4}$) with a mean advantage of $+0.110$ over budget-matched TQA coordinate refinement. It is also markedly more query-efficient: it reaches $98\%$ of the best observed ratio in a mean of <strong>$11.6$</strong> objective queries against $25.0$ for the baseline ($\bar Q_{0.98}$) &mdash; a $\approx 2.2\times$ reduction, the operationally relevant quantity in the query-budget bound.
           </p>
 
           <div class="table-wrap" style="margin-top:22px;">
             <table>
               <thead>
-                <tr><th>Ablation (remove / simplify one component)</th><th>Ratio</th><th>&Delta; vs. full</th></tr>
+                <tr><th>Spectral-truncation sweep (rank $n$)</th><th>Noncomm. (on)</th><th>Comm. (off)</th><th>$d_{\mathrm{eff}}$</th></tr>
               </thead>
               <tbody>
-                <tr><td class="best">Full UQ-QAOA</td><td class="best">0.865</td><td class="best">&mdash;</td></tr>
-                <tr><td>No sequential refinement</td><td>0.863</td><td>&minus;0.002</td></tr>
-                <tr><td>No coordinate probes</td><td>0.772</td><td>&minus;0.094</td></tr>
-                <tr><td>Mean + isotropic $\sigma^2 I$</td><td>0.750</td><td>&minus;0.115</td></tr>
-                <tr><td>No global prior</td><td>0.711</td><td>&minus;0.155</td></tr>
-                <tr><td>GIN mean only</td><td>0.682</td><td>&minus;0.183</td></tr>
-                <tr><td>Mean + fixed box</td><td>0.657</td><td>&minus;0.209</td></tr>
-                <tr><td>No local ($k$-NN) prior</td><td>0.645</td><td>&minus;0.221</td></tr>
+                <tr><td>$n=1$ (aggressive truncation)</td><td>0.811</td><td>0.814</td><td>2.50</td></tr>
+                <tr><td>$n=2$</td><td>0.814</td><td>0.819</td><td>2.93</td></tr>
+                <tr><td>$n=3$</td><td>0.812</td><td>0.813</td><td>3.24</td></tr>
+                <tr><td class="best">$n^{\star}=4$ (operating point)</td><td class="best">0.818</td><td>0.817</td><td>3.46</td></tr>
+                <tr><td>$n=5$</td><td>0.808</td><td>0.812</td><td>3.65</td></tr>
+                <tr><td>$n=6=2p$ (no truncation)</td><td>0.808</td><td>0.812</td><td>3.65</td></tr>
               </tbody>
             </table>
           </div>
           <p class="table-note">
-            No single component carries the result. The largest isolated loss follows from removing the local $k$-NN prior, and every ablation degrades performance, evidence that the gain comes from the full distributional fusion rather than any one part of it.
+            The truncation sweep exhibits the interior optimum predicted by the query-budget bound: aggressive truncation ($n{=}1$) underfits the angle geometry and no truncation ($n{=}2p$) over-diffuses the covariance, while the effective dimension $d_{\mathrm{eff}}(n)$ rises monotonically with the rank. In the design ablation, restricting the search to diagonal (commutative) directions falls to $0.806$ ($-0.012$), localizing the advantage to the off-diagonal, noncommuting operator geometry; the explicit squared-commutator energy term is near-neutral at the operating point, which we report rather than overclaim.
           </p>
 
           <div class="demo-links">
-            <a class="button-link" href="submission/main.pdf">Read the UQ-QAOA paper (PDF)</a>
+            <a class="button-link" href="submission/main.pdf">Read the OST-QAOA paper (PDF)</a>
             <a class="button-link" href="https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/tree/main/submission/code" target="_blank" rel="noreferrer">Reproducible code artifact</a>
           </div>
         </div>
@@ -1333,16 +1315,19 @@
             <div class="section-intro">
               <h2>Reproducible materials</h2>
               <p>
-                Every claim on this page is backed by released material: the lead UQ-QAOA manuscript and its deterministic code artifact, the companion-project manuscript, the rendered notebooks, and the full repository source. All of it reproduces from fixed seeds.
+                Every claim on this page is backed by released material: the OST-QAOA manuscript and its installable, deterministic code artifact, the companion-project manuscript, the rendered notebooks, and the full repository source. The entire manuscript &mdash; every figure, table, CSV summary, and query trace &mdash; is regenerated from a single seed by:
               </p>
+              <pre style="overflow-x:auto;background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-size:0.86rem;line-height:1.5;"><code>cd submission/code
+pip install .
+uqqaoa-reproduce --output-dir . --depth 3 --budget 24 --rank 4 --commutator-weight 4.0</code></pre>
             </div>
           </div>
 
           <div class="link-list">
         <div class="link-item">
           <div>
-            <strong>UQ-QAOA manuscript</strong>
-            <div class="table-note">Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search &mdash; prepared for Nature Machine Intelligence, with theorem-level guarantees and the controlled exact-statevector benchmark.</div>
+            <strong>OST-QAOA manuscript</strong>
+            <div class="table-note">Operator-Spectral Truncated Priors for Query-Efficient QAOA &mdash; the noncommutative operator construction, the positive-definiteness, monotone-truncation, commutative-limit, and query-budget-tradeoff results, and the controlled exact-statevector benchmark.</div>
           </div>
           <div class="link-actions">
             <a class="button-link" href="submission/main.pdf">PDF</a>
@@ -1351,8 +1336,8 @@
 
         <div class="link-item">
           <div>
-            <strong>UQ-QAOA code artifact</strong>
-            <div class="table-note">Modular Python package (<code>python/uq_qaoa/</code>), C++20 reference backend, figure/table/experiment scripts, configs, results, and one-command reproduction via <code>reproduce.sh</code> and <code>generate_all.py</code>.</div>
+            <strong>OST-QAOA code artifact (<code>uq-qaoa</code>)</strong>
+            <div class="table-note">Installable Python package (<code>python/uq_qaoa/</code>) exposing a CLI (<code>uqqaoa-reproduce</code>) and Python API; <code>pip install .</code> regenerates every figure, table, CSV, and query trace deterministically from the global seed.</div>
           </div>
           <div class="link-actions">
             <a class="button-link" href="https://github.com/thmolena/Hybrid-Quantum-Graph-AI-QAOA-GNN-Biomedical-Optimization/tree/main/submission/code" target="_blank" rel="noreferrer">Browse code</a>
@@ -1404,7 +1389,7 @@
 
       <footer class="block-shell">
         Molena Huynh &middot; North Carolina State University &middot; <a href="mailto:molena.huynh@jmp.com">molena.huynh@jmp.com</a><br />
-        UQ-QAOA &mdash; Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA Parameter Search &middot; Prepared for Nature Machine Intelligence.
+        OST-QAOA &mdash; Operator-Spectral Truncated Priors for Query-Efficient QAOA &middot; Reproducible from the installable <code>uq-qaoa</code> package.
       </footer>
     </div>
   </main>

@@ -1,120 +1,117 @@
-# uq-qaoa — Reproduction Artifact
+# uq-qaoa -- OST-QAOA Reproduction Package
 
-Reference implementation and deterministic reproduction artifact for the
-manuscript *Uncertainty-Calibrated Trust Regions for Query-Efficient QAOA
-Parameter Search*. The package provides the exact-statevector MaxCut backend,
-QAOA angle utilities, configuration handling, and the figure/table generators
-that produce every reported quantity. The distribution name on the index is
-`uq-qaoa`; the importable top-level package is `uq_qaoa`.
+Installable reference implementation for the manuscript *Operator-Spectral
+Truncated Priors for Query-Efficient Biomedical QAOA Graph Optimization*. The
+package regenerates every reported figure, table, CSV result, and query trace
+from deterministic exact-statevector MaxCut experiments.
+
+The distribution name is `uq-qaoa`; the importable package is `uq_qaoa`.
 
 ## Installation
 
-```bash
-pip install uq-qaoa
-```
-
-Installation from the artifact checkout:
+From an artifact checkout:
 
 ```bash
 cd submission/code
 pip install .
 ```
 
-The runtime requires Python 3.10 or later. Dependencies are constrained to
-tested major versions:
-
-| Dependency   | Constraint        |
-|--------------|-------------------|
-| numpy        | `>=1.24,<3`       |
-| scipy        | `>=1.10,<2`       |
-| pandas       | `>=2.0,<4`        |
-| pyyaml       | `>=6.0,<7`        |
-| networkx     | `>=3.0,<4`        |
-| matplotlib   | `>=3.7,<4`        |
-| scikit-learn | `>=1.2,<2`        |
-
-The optional `test` extra adds `pytest>=7.0,<9`.
-
-## Reproduction
-
-The package installs a console entry point that regenerates the figures and
-tables. From the artifact directory (`submission/code`, which contains
-`generate_all.py` and `uq_qaoa_core.py`):
+From an index after publishing:
 
 ```bash
-uqqaoa-reproduce            # publication configuration (p=3, Q=18)
-uqqaoa-reproduce --smoke    # fast end-to-end pass at reduced depth (p=2, Q=12)
+pip install uq-qaoa
 ```
 
-The entry point locates the master generator, fixes the global seed via the
-environment, and executes `generate_all.py`. The same regeneration is available
-directly:
+Runtime requirements are Python 3.10 or later plus NumPy, SciPy, pandas,
+PyYAML, NetworkX, matplotlib, and scikit-learn as constrained in
+`pyproject.toml`.
+
+## Regenerate the Manuscript
 
 ```bash
-python generate_all.py
+uqqaoa-reproduce --output-dir . \
+  --depth 3 \
+  --budget 24 \
+  --rank 4 \
+  --commutator-weight 4.0 \
+  --seed 260424803
 ```
 
-A shell driver exposes named subsets for continuous-integration checks:
+Equivalent module command from the checkout:
 
 ```bash
-bash reproduce.sh smoke     # fast subset
-bash reproduce.sh all       # full validation, figures, and tables
+PYTHONPATH=python python -m uq_qaoa.paper_artifacts \
+  --output-dir . \
+  --depth 3 \
+  --budget 24 \
+  --rank 4 \
+  --commutator-weight 4.0
 ```
 
-The full publication configuration completes in approximately two to five
-minutes on the reference platform (Apple M2 Pro), dominated by GIN training and
-exact-statevector QAOA evaluation.
+Fast package sanity check:
 
-## Regenerated figures and tables
-
-Running the entry point writes the following artifacts to `figures/` and
-`tables/`. The mapping below follows the reproducibility manifest of the
-manuscript.
-
-| Manuscript element                      | Generating script                  | Output |
-|-----------------------------------------|------------------------------------|--------|
-| Main benchmark (n=14, p=3, Q=18)        | `trace_evaluations.py`             | `tables/table01_computational_efficiency.csv` |
-| 48-instance replication                 | `table01_expanded.py`              | `tables/table01_expanded.csv`, `tables/paired_uq_vs_tqa_expanded.csv` |
-| Expanded benchmark figure               | `fig05_expanded_benchmark.py`      | `figures/fig05_expanded_benchmark.pdf` |
-| Ablation                                | `table03_ablation.py`              | `tables/table03_ablation.csv` |
-| Bound verification                      | `table02_bound_verification.py`    | `tables/table02_bound_verification.csv` |
-| Cross-size statevector grid             | `fig01_statevector_grid.py`        | `figures/fig01_statevector_grid.pdf` |
-| Efficiency-adjusted quality             | `fig02_efficiency_adjusted.py`     | `figures/fig02_efficiency_adjusted.pdf` |
-| Held-out quality check                  | `fig03_heldout_quality.py`         | `figures/fig03_heldout_quality.pdf` |
-| Trust-region concept                    | `fig04_trust_region_concept.py`    | `figures/fig04_trust_region_concept.pdf` |
-| Per-candidate evaluation log            | `trace_evaluations.py`             | `tables/trace_all_evaluations.csv` |
-
-The Python/C++ statevector cross-check (`results/python_cpp_validation.csv`) and
-the CPU benchmark tables (`tables/bench_*.csv`) are produced by the C++20 backend
-under `cpp/` together with `bench_cpu.py` and `bench_cpu.cpp`.
-
-## Determinism
-
-Every generator is seeded by the fixed global seed `260424803`. Graph
-construction, train/test splitting, GIN initialization, and evaluation ordering
-are deterministic given this seed, so repeated runs on a fixed platform
-reproduce the reported numbers. The entry point also sets `PYTHONHASHSEED` to the
-global seed. The QAOA depth and matched query budget default to `p=3` and `Q=18`
-and may be overridden through the `UQ_QAOA_DEPTH` and `UQ_QAOA_BUDGET`
-environment variables (the `--smoke` flag sets `p=2`, `Q=12`).
-
-## Package layout
-
-```text
-python/uq_qaoa/        installable library (statevector backend, QAOA angle
-                       utilities, configuration, calibration, search policy,
-                       and the uqqaoa-reproduce entry point)
-generate_all.py        master deterministic regenerator
-uq_qaoa_core.py        training library, GIN predictor, and benchmark routines
-fig0*.py, table0*.py   individual figure and table generators
-reproduce.sh           shell driver with named subsets
-configs/               experiment configurations (p3_main.yaml is primary)
-results/, tables/,      generated CSV/TeX/PDF artifacts
-  figures/
-cpp/                   C++20 reference statevector backend and tests
-tests/                 package tests
+```bash
+uqqaoa-reproduce --output-dir /tmp/uq-qaoa-smoke --smoke
 ```
+
+Important knobs users can tune:
+
+| Option | Meaning | Manuscript value |
+|--------|---------|------------------|
+| `--depth` | QAOA depth `p` | `3` |
+| `--budget` | Matched objective-query budget | `24` |
+| `--rank` | Spectral truncation rank of the angle operator | `4` |
+| `--commutator-weight` | Noncommutative commutator interaction weight | `4.0` |
+| `--train-per-family` | Training-library graphs per family | `6` |
+| `--test-per-family` | Test graphs per family | `4` |
+
+## Generated Artifacts
+
+Running the command writes:
+
+| Manuscript element | Output |
+|--------------------|--------|
+| Fig. 1 | `figures/fig01_operator_spectrum.pdf` |
+| Fig. 2 | `figures/fig02_benchmark.pdf` |
+| Fig. 3 | `figures/fig03_truncation_sweep.pdf` |
+| Fig. 4 | `figures/fig04_query_curves.pdf` |
+| Table 1 | `tables/table01_headline.tex`, `tables/table01_headline.csv` |
+| Table 2 | `tables/table02_ablation.tex`, `tables/table02_ablation.csv` |
+| Table 3 | `tables/table05_truncation.tex`, `tables/table05_truncation.csv` |
+| Table 4 | `tables/table04_per_family.tex`, `tables/table04_per_family.csv` |
+| Manifest | `tables/table03_manifest.tex` |
+| Raw results | `results/operator_spectral_results.csv` |
+| Query traces | `results/operator_spectral_traces.csv` |
+| Metadata | `results/reproduction_metadata.json` |
+
+The current manuscript configuration is `p=3`, `Q=24`, rank `4`,
+commutator weight `4.0`, seed `260424803`, graph families
+`er,random_regular,watts_strogatz,barabasi_albert`, sizes `8,10`, six training
+graphs per family, and four test graphs per family.
+
+## Python API
+
+```python
+from uq_qaoa import build_operator_library, ost_qaoa_search
+from uq_qaoa.graphs import generate_graph
+
+library = build_operator_library(p=3, rank=4, commutator_weight=4.0, train_per_family=6)
+graph = generate_graph("random_regular", 10, 1234)
+result = ost_qaoa_search(graph, library, budget=24)
+print(result.y_hat, result.theta_hat)
+```
+
+## Legacy Driver
+
+The old flat-source artifact remains available for comparison:
+
+```bash
+uqqaoa-reproduce --legacy-flat --artifact-root . --smoke
+```
+
+New manuscript results use the package-native `uq_qaoa.paper_artifacts`
+generator.
 
 ## License
 
-Released under the MIT License. See [LICENSE](LICENSE).
+Released under the MIT License. See `LICENSE`.
